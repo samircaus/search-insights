@@ -733,7 +733,10 @@ function sortHeader(id, p, key, label, numeric = true) {
 
 function prevLine(r, key, fmt) {
   if (r.previousStatus === 'present') return h('span', { class: 'prev' }, `was ${fmt(r.previous[key])}`);
-  if (r.previousStatus === 'not-in-returned-rows') return h('span', { class: 'prev' }, 'not in prev. rows');
+  if (r.previousStatus === 'not-in-returned-rows') {
+    return h('span', { class: 'prev', title: 'Not among the rows returned for the previous period (not the same as zero)' },
+      'prev —', h('span', { class: 'visually-hidden' }, ': not among previous period rows'));
+  }
   return null;
 }
 

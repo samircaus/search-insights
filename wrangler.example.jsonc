@@ -17,9 +17,8 @@
   ],
   "observability": { "enabled": true },
   "vars": {
-    // Public client ids are not secrets. Client secrets / API keys are set with `wrangler secret put`.
-    "GOOGLE_CLIENT_ID": "REPLACE.apps.googleusercontent.com",
-    "BING_CLIENT_ID": "",
+    // OAuth client ids, client secrets and API keys are set with `wrangler secret put`
+    // (client ids are not secret, but keeping them there means no redeploy is needed).
     // Adobe IMS client id(s) whose tokens Experience Workspace passes to plugins.
     "IMS_CLIENT_IDS": "darkalley",
     // Optional: fixed public base URL used for OAuth redirect URIs.
@@ -37,7 +36,7 @@
             "mappings": []
           },
           "google": { "properties": ["sc-domain:edgepatterns.dev", "https://edgepatterns.dev/"], "maxQueryRows": 1000 },
-          "bing": { "siteUrl": "https://edgepatterns.dev/", "auth": "apiKey" },
+          "bing": { "siteUrl": "https://edgepatterns.dev/", "auth": "oauth" },
           "access": { "allowedUserIds": [] },
           "reportingDays": 28,
           "thresholds": {}

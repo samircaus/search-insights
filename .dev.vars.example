@@ -1,8 +1,12 @@
 # Local development secrets for `wrangler dev`. Copy to .dev.vars (git-ignored).
 # Generate an encryption key: node -e "console.log(crypto.randomBytes(32).toString('base64url'))"
 TOKEN_ENCRYPTION_KEY=
+GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 # Only for bing.auth = "apiKey"
 BING_API_KEY=
 # Only for bing.auth = "oauth"
+BING_CLIENT_ID=
 BING_CLIENT_SECRET=
+# Local OAuth callbacks: override the deployed base URL
+PUBLIC_BASE_URL=http://localhost:8787

@@ -171,7 +171,8 @@ table { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
 th, td { padding: 5px 6px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
 thead th { background: var(--soft); position: sticky; top: 0; }
 th.num, td.num { text-align: right; white-space: nowrap; }
-th.q { font-weight: 400; word-break: break-word; min-width: 120px; }
+th.q { font-weight: 400; word-break: break-word; min-width: 96px; }
+th, td { padding-left: 4px; padding-right: 4px; }
 td.sel, th.sel { width: 28px; }
 tr.selected { background: color-mix(in srgb, var(--accent) 10%, transparent); }
 .sort { background: none; border: none; font: inherit; font-weight: 700; color: var(--fg); cursor: pointer; padding: 0; }

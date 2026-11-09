@@ -1,0 +1,22 @@
+{
+  "_comment": "Rows to ADD to the 'library' tab at https://da.live/config#/{org}/{site}/ . Do not replace existing rows. Columns verified in https://www.aem.live/docs/ew/administering/set-up-library and adobe/da-live fetchExtensions().",
+  "library": {
+    "data": [
+      {
+        "title": "Search Insights",
+        "path": "https://search-insights.<account>.workers.dev/",
+        "icon": "",
+        "ref": "",
+        "experience": ""
+      },
+      {
+        "title": "Search Insights (local)",
+        "path": "http://localhost:8787/",
+        "icon": "",
+        "ref": "local",
+        "experience": ""
+      }
+    ]
+  },
+  "_experience_values": "'' or 'inline' = library panel (default); 'fullsize-dialog' = large dialog. 'window' is not supported (no SDK handshake)."
+}
