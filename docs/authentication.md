@@ -64,7 +64,7 @@ A failure in one provider never disables the other tab. Failed live requests **n
 
 | Symptom | Check |
 | --- | --- |
-| "Search Insights runs inside Adobe Experience Workspace" | The plugin URL was opened directly. Use `?demo`, or open it from the Workspace library. |
+| "Search Insights runs inside Adobe Experience Workspace" | The plugin URL was opened directly. Use `?demo`, or open it from the Canvas side-panel switcher. |
 | "Experience Workspace did not respond" | The handshake timed out. Reload the document. Make sure the library `experience` is not `window`. |
 | Plugin frame is blank, with a console error about `frame-ancestors` | You embed it somewhere other than `*.da.live`. Edit `web/_headers`. |
 | `redirect_uri_mismatch` from Google | The registered redirect URI must exactly equal `{PUBLIC_BASE_URL or worker origin}/oauth/google/callback`. |

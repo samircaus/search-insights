@@ -11,6 +11,7 @@ Everything below was verified against current documentation and source on 2026-1
 | <https://www.aem.live/docs/ew/administering/set-up-library> | The `library` tab of the site config, with columns `title`, `path`, `format`, `ref`, `icon`, `experience`. |
 | <https://www.aem.live/docs/ew/administering/prepare-menu> | Prepare-menu plugins use the same SDK. `experience: fullsize-dialog` opens a large dialog. |
 | <https://da.live/nx/utils/sdk.js> | SDK source (see below). |
+| <https://adobelabs.dev/events/dev-live26/experience-workspace/3> (lab, Exercise 3) | Corroborates registration: one `library` row with a full `path` (localhost or deployed); plugins open from the Canvas **side-panel switcher**; documents `context → { org, repo, site, ref, path, view, hash }`; recommends racing `DA_SDK` against a timeout. Mentions neither App Builder nor UI Extensibility. |
 | `adobe/da-nx` `docs/sdk-messaging.md` | Capability negotiation: "An action's presence does not prove EW support." |
 | `adobe/da-live` `blocks/canvas/ew-panel-extensions/iframe-protocol.js` | The host side of the handshake and the actions it handles. |
 | `adobe/da-live` `blocks/canvas/ew-panel-extensions/helpers.js` | How `library` rows become Workspace panels, `ref` filtering, source URL rules and the preview proxy. |
@@ -55,7 +56,7 @@ The host reads `library` rows from the org and site configs (`fetchExtensions`):
 
 ## App Builder / UI Extensibility discrepancy
 
-- **What the challenge says:** the announcement (as described in the brief) mentions Adobe App Builder and UI Extensibility. The page linked as the challenge source (<https://adobelabs.dev/events/dev-live26/experience-workspace/>) is a hands-on lab workbook. It mentions neither App Builder nor UI Extensibility, and gives no submission rules. A web search on 2026-11-09 did not find the announcement.
+- **What the challenge says:** the announcement (as described in the brief) mentions Adobe App Builder and UI Extensibility. The page linked as the challenge source (<https://adobelabs.dev/events/dev-live26/experience-workspace/>) is a hands-on lab workbook. Exercises 1–4 (checked 2026-11-09) mention neither App Builder nor UI Extensibility, and give no submission rules. A web search on 2026-11-09 did not find the announcement.
 - **What Workspace documents:** the Experience Workspace documentation describes the DA App SDK (`postMessage` + `MessagePort`) and separately hosted micro-frontends registered in the site's `library` / `prepare` / `apps` sheets.
 - **Why they differ:** App Builder UI Extensibility uses `@adobe/uix-sdk` extension points registered through Adobe Developer Console. That is a different framework, and no Workspace extension point for it is documented.
 - **What this project does:**

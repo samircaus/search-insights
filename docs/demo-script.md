@@ -11,7 +11,7 @@
 > "Authors edit pages here, but the evidence about how people find those pages lives in Search Console and Bing Webmaster Tools. Those are site-wide dashboards the author has to filter by hand. Search Insights brings that evidence to the page being edited."
 
 **0:15 – Open it (20 s)**
-- Open the library panel and choose **Search Insights**.
+- Open the side-panel switcher and choose **Search Insights**.
 - Point at the page identity: the document path, the **public URL** it resolved to, and "canonical URL matches".
 > "It maps the Workspace document to the URL search engines actually report, using the site's production domain. It isn't the editor or preview URL. If the mapping is ambiguous, I can override it, but only to URLs on this site."
 - Point at the **Live data** badge.

@@ -197,9 +197,9 @@ The columns:
 - `path` (required) is the full URL of the deployed plugin. Absolute non-`aem.live` URLs are loaded as-is, without DA's preview proxy.
 - `icon` (optional) is a fully-qualified icon URL.
 - `ref` (optional) gates the row to `?ref=<value>` in the Workspace URL. Rows without `ref` (or `main`) are visible to everyone.
-- `experience` (optional) controls how the plugin opens. Leave it empty for the inline library panel, or use `fullsize-dialog` for a large dialog. Both are verified in DA source. `window` opens a new tab and is not supported, because the SDK handshake requires an iframe.
+- `experience` (optional) controls how the plugin opens. Leave it empty for the side panel, or use `fullsize-dialog` for a large dialog. Both are verified in DA source. `window` opens a new tab and is not supported, because the SDK handshake requires an iframe.
 
-3. Save the sheet. Then open any page of the site in Experience Workspace and open the library (Tools panel). **Search Insights** appears among the extensions.
+3. Save the sheet (paper-plane icon, then **Save**). Open any page in Canvas, e.g. `https://da.live/canvas#/{org}/{site}/index`, open the **side-panel switcher**, and choose **Search Insights**. It sits next to Outline, Page, Files, Versions and Comments.
 
 A machine-readable example is in [`config/library-sheet.example.json`](config/library-sheet.example.json).
 
@@ -219,7 +219,7 @@ npm run dev                                  # http://localhost:8787
   | --- | --- | --- |
   | Search Insights (local) | `http://localhost:8787/` | `local` |
 
-  Then open the document with `?ref=local`, e.g. `https://da.live/edit?ref=local#/{org}/{site}/{path}`. With `ref=local`, Workspace shows rows of every ref, and DA rewrites *relative* paths to `http://localhost:3000`. Our absolute path points at Wrangler instead.
+  Rows with a `ref` only appear when the Workspace URL carries the same `?ref=`, e.g. `https://da.live/canvas?ref=local#/{org}/{site}/{path}`. You can also leave `ref` empty so the local row is always visible. The first time Workspace loads a localhost plugin, it asks you to allow the local connection. DA rewrites *relative* paths to `http://localhost:3000`; this row's absolute path points at Wrangler instead.
 - **Local OAuth:** for Google, register `http://localhost:8787/oauth/google/callback` as an additional redirect URI. `.dev.vars` sets `PUBLIC_BASE_URL=http://localhost:8787`.
 
 ## Production-domain mapping

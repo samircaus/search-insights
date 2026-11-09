@@ -51,7 +51,7 @@ These cover the backend with mocked IMS, DA, Google and Bing responses shaped fr
 
 1. Run `npx wrangler secret put GOOGLE_CLIENT_ID --name search-insights`, then the same for `GOOGLE_CLIENT_SECRET`, `BING_CLIENT_ID` and `BING_CLIENT_SECRET`.
 2. Add the library row at `https://da.live/config#/samircaus/da-elsie/`.
-3. Open an edgepatterns.dev page in Workspace, then open the library and **Search Insights**:
+3. Open an edgepatterns.dev page in Canvas (`https://da.live/canvas#/samircaus/da-elsie/<path>`), then choose **Search Insights** in the side-panel switcher:
    - [ ] Diagnostics lists context keys `branch, hash, org, path, ref, repo, site, view`
    - [ ] Public URL matches the published page; the canonical check is ✓
 4. Google tab:
