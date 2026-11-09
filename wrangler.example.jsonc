@@ -1,0 +1,48 @@
+// Copy to wrangler.jsonc and adjust. wrangler.jsonc is git-ignored because it
+// holds deployment-specific ids. Never put secrets here: use `wrangler secret put`.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "search-insights",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": true,
+  "assets": {
+    "directory": "./web",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*", "/oauth/*"]
+  },
+  "kv_namespaces": [
+    // Create with: npx wrangler kv namespace create SI_KV
+    { "binding": "SI_KV", "id": "REPLACE_WITH_KV_NAMESPACE_ID" }
+  ],
+  "observability": { "enabled": true },
+  "vars": {
+    // Public client ids are not secrets. Client secrets / API keys are set with `wrangler secret put`.
+    "GOOGLE_CLIENT_ID": "REPLACE.apps.googleusercontent.com",
+    "BING_CLIENT_ID": "",
+    // Adobe IMS client id(s) whose tokens Experience Workspace passes to plugins.
+    "IMS_CLIENT_IDS": "darkalley",
+    // Optional: fixed public base URL used for OAuth redirect URIs.
+    // "PUBLIC_BASE_URL": "https://search-insights.example.workers.dev",
+    "SITES": {
+      "sites": [
+        {
+          "id": "edgepatterns",
+          "label": "Edge Patterns",
+          "da": { "org": "samircaus", "site": "da-elsie" },
+          "productionOrigin": "https://edgepatterns.dev",
+          "paths": {
+            "indexName": "index",
+            "excludedPrefixes": ["/drafts/", "/tools/", "/library/", "/fragments/", "/.da/"],
+            "mappings": []
+          },
+          "google": { "properties": ["sc-domain:edgepatterns.dev", "https://edgepatterns.dev/"], "maxQueryRows": 1000 },
+          "bing": { "siteUrl": "https://edgepatterns.dev/", "auth": "apiKey" },
+          "access": { "allowedUserIds": [] },
+          "reportingDays": 28,
+          "thresholds": {}
+        }
+      ]
+    }
+  }
+}

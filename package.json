@@ -1,0 +1,18 @@
+{
+  "name": "search-insights",
+  "version": "0.1.0",
+  "description": "Experience Workspace library plugin that brings Google Search Console and Bing Webmaster Tools data to the page an author is editing.",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "dev": "wrangler dev --port 8787",
+    "deploy": "wrangler deploy",
+    "check-config": "node scripts/check-config.js"
+  },
+  "devDependencies": {
+    "wrangler": "^4.125.0"
+  }
+}

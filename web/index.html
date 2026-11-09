@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Search Insights</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <link rel="icon" href="data:,">
+  <!-- Load the DA App SDK early so it is listening before Workspace posts its handshake. -->
+  <script src="https://da.live/nx/utils/sdk.js" type="module"></script>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" type="module"></script>
+</head>
+<body>
+  <div id="app" class="app" aria-live="polite">
+    <p class="boot">Loading Search Insights…</p>
+  </div>
+  <div id="announcer" class="visually-hidden" role="status" aria-live="polite"></div>
+</body>
+</html>

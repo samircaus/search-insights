@@ -1,0 +1,4 @@
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://da.live; connect-src 'self' https://da.live https://admin.da.live; img-src 'self' data:; style-src 'self'; frame-ancestors https://da.live https://*.da.live; base-uri 'none'; form-action 'none'
