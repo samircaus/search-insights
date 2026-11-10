@@ -4,6 +4,7 @@
  * live data. The UI labels every demo view; live failures never fall back here.
  */
 import { buildResult } from '../core/normalize.js';
+import { normalizeInspection } from '../core/inspection.js';
 import { comparisonWindows } from '../core/dates.js';
 import { ApiError } from '../api.js';
 
@@ -26,7 +27,7 @@ export const DEMO_PAGES = [
   { path: '/martech/fpid', label: 'FPID guide — rich data with opportunities' },
   { path: '/labs', label: 'Labs — low volume' },
   { path: '/about', label: 'About — no search data' },
-  { path: '/personalization/experimentation', label: 'Experimentation — Bing fails' },
+  { path: '/personalization/experimentation', label: 'Experimentation — other canonical; Bing fails' },
 ];
 
 // [query, curClicks, curImpr, curPos, prevClicks|null, prevImpr, prevPos]
@@ -79,7 +80,7 @@ function googleResult(path) {
     summarySource: 'page-totals',
     limits: { rowLimit: 1000, currentRowsTruncated: false, previousRowsTruncated: false },
   };
-  if (path === '/martech/fpid' || path === '/personalization/experimentation') {
+  if (path === '/martech/fpid' || path === '/personalization/personalization-and-optimization') {
     return buildResult({
       ...base,
       currentTotals: { clicks: 312, impressions: 13140, position: 8.9 },
@@ -179,6 +180,66 @@ function bingResult(path) {
   });
 }
 
+const DEMO_NOW = Date.parse('2026-11-09T12:00:00Z');
+const SC_LINK = 'https://search.google.com/search-console/inspect';
+
+function inspectionRaw(path) {
+  const url = ORIGIN + path;
+  if (path === '/about') {
+    return {
+      inspectionResultLink: SC_LINK,
+      indexStatusResult: {
+        verdict: 'NEUTRAL',
+        coverageState: 'Crawled - currently not indexed',
+        robotsTxtState: 'ALLOWED',
+        indexingState: 'INDEXING_ALLOWED',
+        pageFetchState: 'SUCCESSFUL',
+        lastCrawlTime: '2026-10-21T08:14:02Z',
+        userCanonical: url,
+        crawledAs: 'MOBILE',
+        sitemap: [`${ORIGIN}/sitemap.xml`],
+      },
+    };
+  }
+  if (path === '/personalization/experimentation') {
+    return {
+      inspectionResultLink: SC_LINK,
+      indexStatusResult: {
+        verdict: 'NEUTRAL',
+        coverageState: 'Duplicate, Google chose different canonical than user',
+        robotsTxtState: 'ALLOWED',
+        indexingState: 'INDEXING_ALLOWED',
+        pageFetchState: 'SUCCESSFUL',
+        lastCrawlTime: '2026-11-01T17:40:11Z',
+        googleCanonical: `${ORIGIN}/personalization/personalization-and-optimization`,
+        userCanonical: url,
+        crawledAs: 'MOBILE',
+      },
+    };
+  }
+  return {
+    inspectionResultLink: SC_LINK,
+    indexStatusResult: {
+      verdict: 'PASS',
+      coverageState: 'Submitted and indexed',
+      robotsTxtState: 'ALLOWED',
+      indexingState: 'INDEXING_ALLOWED',
+      pageFetchState: 'SUCCESSFUL',
+      lastCrawlTime: path === '/labs' ? '2026-10-02T03:22:45Z' : '2026-11-06T22:05:31Z',
+      googleCanonical: url,
+      userCanonical: url,
+      crawledAs: 'MOBILE',
+      sitemap: [`${ORIGIN}/sitemap.xml`],
+    },
+    ...(path === '/martech/fpid' ? {
+      richResultsResult: {
+        verdict: 'PASS',
+        detectedItems: [{ richResultType: 'Breadcrumbs', items: [{ name: 'Unnamed item', issues: [] }] }],
+      },
+    } : {}),
+  };
+}
+
 const wait = (ms) => new Promise((r) => { setTimeout(r, ms); });
 
 export function createDemoApi() {
@@ -207,6 +268,13 @@ export function createDemoApi() {
       await wait(250);
       const path = new URL(pageUrl).pathname;
       return provider === 'bing' ? bingResult(path) : googleResult(path);
+    },
+    async inspect(pageUrl) {
+      await wait(350);
+      const path = new URL(pageUrl).pathname;
+      return normalizeInspection(inspectionRaw(path), {
+        url: pageUrl, property: 'sc-domain:edgepatterns.dev', now: DEMO_NOW, inspectedAt: '2026-11-09T12:00:00.000Z',
+      });
     },
     async pageCheck(pageUrl) {
       return { url: pageUrl, finalUrl: pageUrl, status: 'ok', canonical: { status: 'match', canonical: pageUrl } };

@@ -39,10 +39,10 @@ plugin: polls GET /api/status every 2 s until connected (works even when COOP se
 
 ## Property and site restrictions
 
-- **Google:** the `property` parameter must be in `google.properties`, and the page URL must be inside that property (Domain or URL-prefix rules). Google itself enforces that the connected account can read the property.
+- **Google** (Search Analytics and URL Inspection): the `property` parameter must be in `google.properties`, and the page URL must be inside that property (Domain or URL-prefix rules). Google itself enforces that the connected account can read the property.
 - **Bing:** only `bing.siteUrl` is ever queried, and only for URLs on `productionOrigin`. This matters because a Bing API key covers every site its owner verified.
 - **Page check:** the backend fetches only URLs on `productionOrigin`. It uses manual redirects (max 3, each validated same-origin), a 5 s timeout and at most 1 MB read. Arbitrary outbound fetching is not possible.
-- **Cache keys:** `cache:v1:{provider}:{userId | site:<id> for shared Bing key}:{property}:{sha256(url)}:{days}`, with values encrypted and a 15-minute TTL.
+- **Cache keys:** `cache:v1:{provider}:{userId | site:<id> for shared Bing key}:{property}:{sha256(url)}:{days}` for reports (15-minute TTL) and `cache:v1:inspect:{userId}:{property}:{sha256(url)}` for URL Inspection (1-hour TTL, because of its 2,000-per-day quota). All values are encrypted.
 
 ## Error states shown to authors
 

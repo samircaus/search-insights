@@ -8,7 +8,7 @@ It shows Google Search Console and Bing Webmaster Tools data for the page's publ
 
 - **Frontend:** a small vanilla-JS micro-frontend using the [DA App SDK](https://www.aem.live/docs/ew/developing/apps-plugins). There is no framework and no build step.
 - **Backend:** a Cloudflare Worker that handles provider OAuth, token storage, access control, provider calls and normalization. The business logic is platform-independent (see [Hosting](#hosting-and-app-builder)).
-- **Providers:** Google Search Console (Search Analytics API, read-only OAuth) and Bing Webmaster Tools (JSON API, API key or OAuth).
+- **Providers:** Google Search Console (Search Analytics and URL Inspection APIs, read-only OAuth) and Bing Webmaster Tools (JSON API, API key or OAuth).
 - **Demo mode:** clearly labelled fixtures for reviewers without credentials: `https://<your-worker>/?demo`.
 
 <img src="docs/screenshots/demo-google.jpg" alt="Search Insights in demo mode: page identity, Google tab, summary and review cards" width="380"> <img src="docs/screenshots/demo-queries-brief.jpg" alt="Query table with previous-period values and editing brief preview" width="380">
@@ -58,6 +58,7 @@ Experience Workspace (da.live)                        Cloudflare Worker (same or
 3. It checks the published page's canonical link through the backend, which only fetches URLs on the configured origin.
 4. On each tab (Google, Bing) the author connects once with OAuth in a popup. Bing can instead use a deployment API key. The tab then shows:
    - the period with actual dates and freshness
+   - on Google, the page's **index status** from URL Inspection: indexed or not and why, last crawl, Google-selected versus declared canonical, and rich-result errors
    - page totals with changes (CTR in percentage points, lower position = better)
    - opportunity cards
    - a sortable and filterable query table
@@ -266,6 +267,7 @@ Other mapping behaviour:
 - Search Console returns **top rows only** and omits anonymised queries. Query rows never sum to page totals, and the UI says how much of the page's clicks they cover.
 - Only **finalized** data (`dataState: final`) is used. The period ends on the latest finalized date for the property, which is usually 2–3 days ago. Dates are Pacific Time calendar days.
 - Search type is `web` only. Discover, News, Image and Video are not included.
+- URL Inspection reports Google's **indexed** version, not a live test. It is limited to 2,000 inspections per day and 600 per minute per property, so results are cached for 1 hour per user, property and URL.
 - Queries are loaded with `rowLimit` 1000 by default (configurable up to 25,000 per request, paginated with `startRow`).
 
 **Bing**
@@ -276,6 +278,7 @@ Other mapping behaviour:
 - Bing figures are search statistics, **not** Copilot citations or AI-answer visibility.
 
 **Not included by design**
+- Search Console reports with no API (Core Web Vitals, Links, Manual actions, Security issues). Core Web Vitals per page are better covered by Edge Delivery's real-user monitoring (RUM).
 - Site-wide dashboards, scheduled monitoring, rank tracking, automatic edits or publishing, Jira, general SEO audits.
 - Providers are never blended: Google and Bing stay on separate tabs.
 - Optional AI enrichment of the brief is not implemented. The deterministic brief works without any AI service.
@@ -291,7 +294,7 @@ Other mapping behaviour:
 npm test
 ```
 
-There are 80 focused tests (`node:test`, no dependencies) covering:
+There are 91 focused tests (`node:test`, no dependencies) covering:
 - URL mapping
 - comparison windows and date boundaries
 - CTR and percentage points
@@ -300,6 +303,7 @@ There are 80 focused tests (`node:test`, no dependencies) covering:
 - low-volume suppression
 - site and property authorization
 - OAuth state and PKCE
+- URL Inspection normalization, caching and access checks
 - encryption binding
 - secret redaction
 - safe page fetching

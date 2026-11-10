@@ -24,6 +24,7 @@ Read-only by design: it never edits, saves or publishes content automatically.
 ## Feature summary
 - Page-level search data for the document being edited, mapped to its public production URL (with canonical check and constrained override)
 - Google Search Console (read-only OAuth, finalized data, Domain and URL-prefix properties)
+- Index status per page from Google URL Inspection: indexed or not and why, last crawl, Google versus declared canonical, rich-result errors
 - Bing Webmaster Tools (OAuth or deployment API key, weekly data shown honestly)
 - Clear dates, freshness, units and change directions; CTR changes in percentage points
 - Deterministic opportunity cards with evidence and caveats; low-volume pages suppressed

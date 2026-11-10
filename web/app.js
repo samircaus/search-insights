@@ -8,6 +8,7 @@ import { createDemoApi, DEMO_PAGES } from './fixtures/demo.js';
 import { resolvePublicUrl, validateOverride } from './core/url-resolver.js';
 import { findOpportunities, mergeThresholds } from './core/opportunities.js';
 import { buildBrief, briefToHtml } from './core/brief.js';
+import { inspectionHeadline } from './core/inspection.js';
 import { fmtRange } from './core/dates.js';
 import {
   fmtInt, fmtPct, fmtPos, fmtRelChange, fmtPp, changeDirection, isNum,
@@ -42,6 +43,7 @@ function perProvider(id) {
     state.per[id] = {
       status: 'idle', result: null, error: null, opps: null,
       selectedQueries: new Set(), selectedCards: new Set(),
+      inspection: { status: 'idle', data: null, error: null },
       sort: { key: 'clicks', dir: 'desc' }, filter: 'all', search: '',
       briefFormat: 'markdown', brief: null, confirmInsert: false,
     };
@@ -144,6 +146,7 @@ async function loadActive({ refresh = false } = {}) {
   p.error = null;
   renderPanel();
   const reqUrl = state.pageUrl;
+  if (id === 'google') loadInspection({ refresh });
   try {
     const result = await state.api.report(id, state.pageUrl, {
       property: id === 'google' ? state.property || undefined : undefined,
@@ -168,6 +171,23 @@ async function loadActive({ refresh = false } = {}) {
   }
   renderTabs();
   if (state.active === id) renderPanel();
+}
+
+async function loadInspection({ refresh = false } = {}) {
+  const p = perProvider('google');
+  const reqUrl = state.pageUrl;
+  p.inspection = { status: 'loading', data: null, error: null };
+  renderInspection();
+  try {
+    const data = await state.api.inspect(reqUrl, { property: state.property || undefined, refresh });
+    if (reqUrl !== state.pageUrl) return;
+    p.inspection = { status: 'ready', data, error: null };
+  } catch (e) {
+    if (reqUrl !== state.pageUrl) return;
+    p.inspection = { status: 'error', data: null, error: e };
+  }
+  renderInspection();
+  if (p.brief) renderBriefOnly('google');
 }
 
 async function loadProperties() {
@@ -477,11 +497,12 @@ function renderPanel() {
       parts.push(errorBox(id, p.error));
       break;
     case 'empty':
-      parts.push(periodBar(p.result), noDataBox(id, p.result));
+      parts.push(periodBar(p.result), inspectionSlot(id), noDataBox(id, p.result));
       break;
     case 'ready':
       parts.push(
         periodBar(p.result),
+        inspectionSlot(id),
         summaryTiles(p.result),
         warningsList(p.result),
         opportunitiesSection(id, p),
@@ -624,6 +645,66 @@ function summaryTiles(result) {
     h('div', { class: 'tiles' }, tiles),
     s.source === 'derived-from-query-rows' ? h('p', { class: 'hint' }, 'Totals are summed from returned query rows (see warnings).') : null,
     result.metrics?.position?.definition ? h('p', { class: 'hint' }, `Position: ${result.metrics.position.definition}`) : null);
+}
+
+function inspectionSlot(id) {
+  if (id !== 'google') return null;
+  const el = h('section', { class: 'inspection', id: 'inspection-google', 'aria-label': 'Google index status' });
+  fillInspection(el);
+  return el;
+}
+
+function renderInspection() {
+  const el = document.getElementById('inspection-google');
+  if (el) fillInspection(el);
+}
+
+function fmtDateTime(iso) {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function fillInspection(el) {
+  const ins = perProvider('google').inspection;
+  const head = h('h2', {}, 'Google index status');
+  if (ins.status === 'loading' || ins.status === 'idle') {
+    replace(el, head, h('p', { class: 'loading', role: 'status' }, 'Inspecting this URL in Google’s index…'));
+    return;
+  }
+  if (ins.status === 'error') {
+    const e = ins.error;
+    replace(el, head, h('p', { class: 'muted' }, `Index status unavailable: ${e?.message || 'unknown error'}`),
+      e?.code === 'RATE_LIMITED' ? h('p', { class: 'hint' }, 'URL Inspection is limited to 2,000 checks per day per property.') : null);
+    return;
+  }
+  const i = ins.data;
+  const icon = { indexed: '✓', excluded: '!', error: '✕' }[i.status] || '?';
+  const findings = i.findings.filter((f) => f.code !== 'indexed');
+  replace(el,
+    head,
+    h('p', { class: `index-status s-${i.status}` },
+      h('span', { 'aria-hidden': 'true' }, `${icon} `), h('strong', {}, inspectionHeadline(i)),
+      i.coverageState ? ` — ${i.coverageState}` : ''),
+    h('dl', { class: 'evidence' },
+      h('dt', {}, 'Last crawl'), h('dd', {}, i.lastCrawlTime
+        ? `${fmtDateTime(i.lastCrawlTime)}${i.lastCrawlDays !== null ? ` (${i.lastCrawlDays} day${i.lastCrawlDays === 1 ? '' : 's'} ago)` : ''}${i.crawledAs ? `, ${i.crawledAs.toLowerCase()} crawler` : ''}`
+        : 'No successful crawl on record'),
+      h('dt', {}, 'Google canonical'), h('dd', { class: 'mono' }, i.googleCanonical
+        ? `${i.googleCanonical}${i.canonical === 'self' ? ' (this URL)' : ''}` : '—'),
+      i.userCanonical ? [h('dt', {}, 'Declared canonical'), h('dd', { class: 'mono' }, i.userCanonical)] : null,
+      i.sitemaps.length ? [h('dt', {}, 'In sitemap'), h('dd', { class: 'mono' }, i.sitemaps.join(', '))] : null,
+      i.richResults?.types.length ? [h('dt', {}, 'Rich results'), h('dd', {}, i.richResults.types
+        .map((t) => `${t.type}${t.errors ? ` (${t.errors} error${t.errors === 1 ? '' : 's'})` : t.warnings ? ` (${t.warnings} warning${t.warnings === 1 ? '' : 's'})` : ' (valid)'}`).join(', '))] : null),
+    findings.length ? h('ul', { class: 'findings' }, findings.map((f) => {
+      const v = f.canonical ? validateOverride(f.canonical, state.site) : null;
+      return h('li', { class: `f-${f.level}` },
+        h('span', { class: 'visually-hidden' }, `${f.level}: `), f.message,
+        v?.ok && v.url !== state.pageUrl
+          ? [' ', h('button', { class: 'link-button', onclick: () => applyOverride(v.url) }, 'Use this URL')] : null);
+    })) : null,
+    h('p', { class: 'hint' },
+      `Reflects Google’s indexed version, not a live test. Checked ${fmtDateTime(i.inspectedAt)}. `,
+      i.link ? h('a', { href: i.link, target: '_blank', rel: 'noopener noreferrer' }, 'Open in Search Console') : null));
 }
 
 function warningsList(result) {
@@ -805,7 +886,12 @@ function briefContent(id, p) {
     parts.push(h('button', {
       class: 'button primary',
       onclick: () => {
-        p.brief = buildBrief({ result: p.result, selectedQueries: [...p.selectedQueries], selectedCards: selectedCards(p) });
+        p.brief = buildBrief({
+          result: p.result,
+          selectedQueries: [...p.selectedQueries],
+          selectedCards: selectedCards(p),
+          inspection: id === 'google' && p.inspection.status === 'ready' ? p.inspection.data : null,
+        });
         replace(document.getElementById(`brief-${id}`), briefContent(id, p));
         document.getElementById(`brief-text-${id}`)?.focus();
       },

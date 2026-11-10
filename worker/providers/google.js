@@ -13,15 +13,17 @@ import { AppError } from '../errors.js';
 import { comparisonWindows, addDays, todayInTimeZone } from '../../web/core/dates.js';
 import { buildResult } from '../../web/core/normalize.js';
 import { isUrlInGoogleProperty } from '../../web/core/url-resolver.js';
+import { normalizeInspection } from '../../web/core/inspection.js';
 
 const API = 'https://www.googleapis.com/webmasters/v3';
+const INSPECT_API = 'https://searchconsole.googleapis.com/v1/urlInspection/index:inspect';
 export const GSC_TIMEZONE = 'America/Los_Angeles';
 
 export function mapGoogleError(status, body) {
   const reason = body?.error?.errors?.[0]?.reason || body?.error?.status || '';
   if (status === 401) return new AppError('REAUTH_REQUIRED', `google 401 ${reason}`);
   if (status === 403) {
-    if (/rateLimit|quota|RESOURCE_EXHAUSTED/i.test(reason)) return new AppError('RATE_LIMITED', `google 403 ${reason}`);
+    if (/rateLimit|quota|RESOURCE_EXHAUSTED/i.test(`${reason} ${body?.error?.message || ''}`)) return new AppError('RATE_LIMITED', `google 403 ${reason}`);
     return new AppError('PROPERTY_ACCESS_DENIED', `google 403 ${reason}`);
   }
   if (status === 404) return new AppError('PROPERTY_ACCESS_DENIED', 'google 404 property not found');
@@ -49,7 +51,27 @@ export function googleClient({ accessToken, fetchImpl = fetch }) {
     if (!resp.ok) throw mapGoogleError(resp.status, body);
     return body;
   }
+  async function inspect(property, url) {
+    let resp;
+    try {
+      resp = await fetchImpl(INSPECT_API, {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+          'content-type': 'application/json',
+          accept: 'application/json',
+        },
+        body: JSON.stringify({ inspectionUrl: url, siteUrl: property, languageCode: 'en-US' }),
+      });
+    } catch (e) {
+      throw new AppError('PROVIDER_UNAVAILABLE', `google network ${e.message}`);
+    }
+    const body = await resp.json().catch(() => ({}));
+    if (!resp.ok) throw mapGoogleError(resp.status, body);
+    return body.inspectionResult || {};
+  }
   return {
+    inspect,
     listSites: () => call('/sites').then((b) => b.siteEntry || []),
     query: (property, request) => call(
       `/sites/${encodeURIComponent(property)}/searchAnalytics/query`,
@@ -204,4 +226,14 @@ export async function accessibleProperties(client, allowed) {
     permissionLevel: byUrl.get(p) || null,
     accessible: !!byUrl.get(p) && byUrl.get(p) !== 'siteUnverifiedUser',
   }));
+}
+
+/**
+ * URL Inspection for one page (Google's indexed version, not a live test).
+ * Quota: 2,000 inspections/day and 600/minute per property, so results are cached.
+ */
+export async function googleInspection({ client, property, url, now }) {
+  if (!isUrlInGoogleProperty(url, property)) throw new AppError('URL_NOT_ALLOWED', 'url outside property');
+  const raw = await client.inspect(property, url);
+  return normalizeInspection(raw, { url, property, now: now ?? Date.now() });
 }

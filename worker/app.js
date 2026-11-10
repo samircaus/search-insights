@@ -12,7 +12,9 @@ import { authenticate } from './adobe-auth.js';
 import {
   startAuthorization, consumeState, exchangeCode, getAccessToken, disconnect, tokenKey,
 } from './oauth.js';
-import { googleClient, googleReport, accessibleProperties } from './providers/google.js';
+import {
+  googleClient, googleReport, accessibleProperties, googleInspection,
+} from './providers/google.js';
 import { bingClient, bingReport } from './providers/bing.js';
 import { checkPublishedPage } from './page-check.js';
 import { secureStore } from './store.js';
@@ -20,6 +22,7 @@ import { sha256, randomToken } from './crypto.js';
 import { validateOverride, isUrlInGoogleProperty } from '../web/core/url-resolver.js';
 
 const REPORT_TTL = 900;
+const INSPECTION_TTL = 3600;
 const JSON_HEADERS = {
   'content-type': 'application/json; charset=utf-8',
   'cache-control': 'no-store',
@@ -79,12 +82,33 @@ async function connectionInfo(provider, site, userId, deps, secure) {
   };
 }
 
-async function cached(secure, key, fn) {
+async function cached(secure, key, fn, ttl = REPORT_TTL) {
   const hit = await secure.get(key);
   if (hit) return { ...hit, cache: 'hit' };
   const value = await fn();
-  await secure.put(key, value, { ttl: REPORT_TTL });
+  await secure.put(key, value, { ttl });
   return { ...value, cache: 'miss' };
+}
+
+function googleProperty(url, site, pageUrl) {
+  if (!site.google) throw new AppError('NOT_CONFIGURED', 'google');
+  const property = q(url, 'property') || site.google.properties[0];
+  if (!site.google.properties.includes(property)) throw new AppError('URL_NOT_ALLOWED', 'property not allowed');
+  if (!isUrlInGoogleProperty(pageUrl, property)) throw new AppError('URL_NOT_ALLOWED', 'url outside property');
+  return property;
+}
+
+async function handleInspection(request, url, deps, secure) {
+  const { site, auth } = await ctxFor(request, url, deps);
+  const pageUrl = resolveRequestedUrl(url, site);
+  const property = googleProperty(url, site, pageUrl);
+  const accessToken = await getAccessToken({
+    provider: 'google', userId: auth.userId, env: deps.env, secure, fetchImpl: deps.fetchImpl,
+  });
+  const key = `cache:v1:inspect:${auth.userId}:${property}:${await sha256(pageUrl)}`;
+  if (q(url, 'refresh') === '1') await secure.delete(key);
+  const client = googleClient({ accessToken, fetchImpl: deps.fetchImpl });
+  return cached(secure, key, () => googleInspection({ client, property, url: pageUrl }), INSPECTION_TTL);
 }
 
 async function handleReport(request, url, deps, secure) {
@@ -96,10 +120,7 @@ async function handleReport(request, url, deps, secure) {
   const fresh = q(url, 'refresh') === '1';
 
   if (provider === 'google') {
-    if (!site.google) throw new AppError('NOT_CONFIGURED', 'google');
-    const property = q(url, 'property') || site.google.properties[0];
-    if (!site.google.properties.includes(property)) throw new AppError('URL_NOT_ALLOWED', 'property not allowed');
-    if (!isUrlInGoogleProperty(pageUrl, property)) throw new AppError('URL_NOT_ALLOWED', 'url outside property');
+    const property = googleProperty(url, site, pageUrl);
     const accessToken = await getAccessToken({
       provider: 'google', userId: auth.userId, env: deps.env, secure, fetchImpl: deps.fetchImpl,
     });
@@ -253,6 +274,10 @@ export async function handle(request, deps) {
 
     if (pathname === '/api/report' && request.method === 'GET') {
       return json(await handleReport(request, url, deps, secure));
+    }
+
+    if (pathname === '/api/google/inspect' && request.method === 'GET') {
+      return json(await handleInspection(request, url, deps, secure));
     }
 
     if (pathname === '/api/page-check' && request.method === 'GET') {

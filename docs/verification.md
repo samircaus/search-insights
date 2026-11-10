@@ -14,7 +14,7 @@ Last updated 2026-11-09. Each line is either **live-tested**, **fixture-tested**
 | edgepatterns.dev URL conventions | `/about` 200, `/about/` 404, `/de/` 200, `/de` 404, `.html` 404; canonical tags match the URL |
 | Google Cloud project `search-insights-ew` with the Search Console API enabled | `gcloud services list` |
 | Plugin outside Workspace | Shows the "runs inside Adobe Experience Workspace" message with a demo link |
-| Demo mode in a browser (420 px wide) | All four scenarios render; provider switching works; brief preview and Markdown/plain text generated |
+| Demo mode in a browser (420 px wide) | All four scenarios render, including index status (indexed, not indexed, different Google canonical with “Use this URL”); provider switching works; brief preview and Markdown/plain text generated |
 
 ## Fixture-tested (unit tests, `npm test`)
 
@@ -40,6 +40,7 @@ These cover the backend with mocked IMS, DA, Google and Bing responses shaped fr
 | Handshake inside Workspace: actual `context.path` for edgepatterns.dev documents (with or without extension), token refresh messages, inline panel width | Library row added to `samircaus/da-elsie` config; signed-in da.live session |
 | IMS `validate_token` response shape for a **valid** DA token (`token.user_id` is expected; a JWT-claims fallback is implemented) | Signed-in session |
 | DA `admin.da.live/list/samircaus/da-elsie` returning 200 for an authorized user | Signed-in session |
+| Live Google URL Inspection response for edgepatterns.dev pages (fields verified against the API reference only) | Same as below |
 | Live Google OAuth and Search Analytics requests for edgepatterns.dev | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` secrets; consent screen with a test user; a Search Console property for edgepatterns.dev |
 | Which Google property exists (`sc-domain:edgepatterns.dev` and/or `https://edgepatterns.dev/`) | Google connection; `/api/google/properties` reports it |
 | Live Bing OAuth and `GetPageQueryStats` / `GetPageStats` row-date granularity | `BING_CLIENT_ID` / `BING_CLIENT_SECRET`; Bing OAuth client registration |
@@ -57,6 +58,7 @@ These cover the backend with mocked IMS, DA, Google and Bing responses shaped fr
 4. Google tab:
    - [ ] Connect → consent → popup closes → data loads
    - [ ] Dates end at the latest finalized day
+   - [ ] Index status shows indexed, last crawl and Google canonical; Open in Search Console works
 5. Bing tab:
    - [ ] Connect → data loads, or a documented error
    - [ ] Switching tabs keeps each provider's state

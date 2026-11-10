@@ -194,3 +194,14 @@ tr.selected { background: color-mix(in srgb, var(--accent) 10%, transparent); }
 .diagnostics { margin-top: 24px; font-size: 0.8rem; color: var(--muted); }
 .diagnostics dl { display: grid; grid-template-columns: max-content 1fr; gap: 2px 10px; }
 .diagnostics dd { margin: 0; }
+
+/* Index status (URL Inspection) */
+.inspection { border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 10px; margin: 8px 0; }
+.inspection h2 { margin-top: 0; }
+.index-status { font-size: 0.95rem; }
+.index-status.s-indexed span { color: var(--good); }
+.index-status.s-excluded span, .index-status.s-error span { color: var(--bad); }
+.findings { padding-left: 18px; margin: 6px 0; font-size: 0.85rem; }
+.findings .f-error::marker { content: "✕ "; color: var(--bad); }
+.findings .f-warn::marker { content: "! "; color: var(--bad); }
+.findings .f-info::marker { content: "i "; color: var(--muted); }

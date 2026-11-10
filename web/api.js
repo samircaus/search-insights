@@ -41,6 +41,9 @@ export function createApi({ getToken, org, site, base = '' }) {
         provider, url: pageUrl, property, days, refresh: refresh ? '1' : undefined,
       },
     }),
+    inspect: (pageUrl, { property, refresh } = {}) => call('/api/google/inspect', {
+      params: { url: pageUrl, property, refresh: refresh ? '1' : undefined },
+    }),
     pageCheck: (pageUrl) => call('/api/page-check', { params: { url: pageUrl } }),
     startOAuth: (provider) => call(`/api/oauth/${provider}/start`, { method: 'POST' }),
     disconnect: (provider) => call(`/api/oauth/${provider}/disconnect`, { method: 'POST' }),

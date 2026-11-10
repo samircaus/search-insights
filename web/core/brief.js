@@ -9,6 +9,7 @@ import {
   fmtInt, fmtPct, fmtPos, fmtRelChange, fmtPp, fmtPosChange, isNum,
 } from './metrics.js';
 import { fmtRange, addDays, fmtDate } from './dates.js';
+import { inspectionBriefLines, inspectionChecks } from './inspection.js';
 
 const PROVIDER_LABEL = { google: 'Google Search Console', bing: 'Bing Webmaster Tools' };
 
@@ -43,7 +44,7 @@ function uniq(arr) {
  * @param {boolean} [p.contentInspected=false]
  */
 export function buildBrief({
-  result, selectedQueries = [], selectedCards = [], followUpDays = 28, contentInspected = false,
+  result, selectedQueries = [], selectedCards = [], followUpDays = 28, contentInspected = false, inspection = null,
 }) {
   const provider = PROVIDER_LABEL[result.provider] || result.provider;
   const p = result.periods || {};
@@ -62,6 +63,7 @@ export function buildBrief({
       `Source: ${provider}${result.property ? ` (${result.property})` : ''}`,
       `Period: ${fmtRange(p.current)}${p.previous ? `, compared with ${fmtRange(p.previous)}` : ' (no comparison period available)'}`,
       ...(result.freshness?.note ? [`Data freshness: ${result.freshness.note}`] : []),
+      ...inspectionBriefLines(inspection),
     ],
   });
 
@@ -103,7 +105,7 @@ export function buildBrief({
     });
   }
 
-  const checks = uniq(selectedCards.flatMap((c) => c.checks || []));
+  const checks = uniq([...inspectionChecks(inspection), ...selectedCards.flatMap((c) => c.checks || [])]);
   if (!checks.length && queries.length) {
     queries.forEach((r) => {
       checks.push(`Read the page as someone searching “${r.query}” and check whether it answers that need clearly.`);

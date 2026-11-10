@@ -14,7 +14,8 @@
 - Open the side-panel switcher and choose **Search Insights**.
 - Point at the page identity: the document path, the **public URL** it resolved to, and "canonical URL matches".
 > "It maps the Workspace document to the URL search engines actually report, using the site's production domain. It isn't the editor or preview URL. If the mapping is ambiguous, I can override it, but only to URLs on this site."
-- Point at the **Live data** badge.
+- Point at the **Live data** badge, then the **Google index status** box: indexed, last crawl, and Google's chosen canonical.
+> "First question: is Google even indexing this page, and under which URL? If it chose a different canonical, the panel offers to switch to that URL, because that's where the data lives." 
 
 **0:35 – What brings people here (35 s)**
 - Google tab: the period with real dates, and "finalized data through …".
