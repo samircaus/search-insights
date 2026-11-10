@@ -48,6 +48,10 @@ These cover the backend with mocked IMS, DA, Google and Bing responses shaped fr
 | Insert into document (`sendHTML`) and clipboard copy inside the Workspace iframe | Signed-in session with the plugin registered |
 | `experience: fullsize-dialog` | Same |
 
+## Deciding on Bing for edgepatterns.dev
+
+Bing is enabled in this deployment's config but has not been tested live. If Bing does not return real rows for `/martech/fpid` after setup, or the data is too thin to demo, remove the `bing` section from the edgepatterns entry in `wrangler.jsonc` and run `npx wrangler deploy`. The Bing tab then disappears for that site, while the adapter, tests and demo fixtures stay in place. Record the reason here.
+
 ## Next live test run (checklist)
 
 1. Run `npx wrangler secret put GOOGLE_CLIENT_ID --name search-insights`, then the same for `GOOGLE_CLIENT_SECRET`, `BING_CLIENT_ID` and `BING_CLIENT_SECRET`.

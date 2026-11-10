@@ -242,15 +242,16 @@ function inspectionRaw(path) {
 
 const wait = (ms) => new Promise((r) => { setTimeout(r, ms); });
 
-export function createDemoApi() {
+/** @param {{providers?: string[]}} [opts] limit enabled providers, e.g. ['google'] */
+export function createDemoApi({ providers = ['google', 'bing'] } = {}) {
   return {
     mode: 'demo',
     async config() {
       return {
         site: DEMO_SITE,
         providers: {
-          google: { enabled: true, configured: true, auth: 'oauth' },
-          bing: { enabled: true, configured: true, auth: 'apiKey' },
+          google: { enabled: providers.includes('google'), configured: true, auth: 'oauth' },
+          bing: { enabled: providers.includes('bing'), configured: true, auth: 'apiKey' },
         },
         user: { id: 'demo-user' },
       };

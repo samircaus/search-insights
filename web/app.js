@@ -15,10 +15,7 @@ import {
 } from './core/metrics.js';
 import { h, announce, replace } from './ui/dom.js';
 
-const PROVIDERS = [
-  { id: 'google', label: 'Google', long: 'Google Search Console' },
-  { id: 'bing', label: 'Bing', long: 'Bing Webmaster Tools' },
-];
+import { PROVIDERS, visibleProviders, pickActive } from './ui/providers.js';
 
 const state = {
   mode: 'live', // 'live' | 'demo'
@@ -59,7 +56,11 @@ const app = () => document.getElementById('app');
 
 async function boot() {
   const params = new URLSearchParams(window.location.search);
-  if (params.has('demo')) return startDemo(params.get('page'));
+  if (params.has('demo')) {
+    const only = params.get('providers');
+    state.demoProviders = only ? only.split(',').map((s) => s.trim()) : undefined;
+    return startDemo(params.get('page'));
+  }
 
   const ws = await connectWorkspace();
   if (ws.status !== 'ready') return renderOutside(ws.status);
@@ -74,6 +75,7 @@ async function boot() {
     const cfg = await state.api.config();
     state.site = cfg.site;
     state.providers = cfg.providers;
+    state.active = pickActive(state.active, state.providers);
   } catch (e) {
     return renderFatal(errorTitle(e), e.message);
   }
@@ -85,10 +87,11 @@ async function boot() {
 
 async function startDemo(pagePath) {
   state.mode = 'demo';
-  state.api = createDemoApi();
+  state.api = createDemoApi({ providers: state.demoProviders });
   const cfg = await state.api.config();
   state.site = cfg.site;
   state.providers = cfg.providers;
+  state.active = pickActive(state.active, state.providers);
   const page = DEMO_PAGES.find((p) => p.path === pagePath) || DEMO_PAGES[0];
   state.docPath = page.path;
   state.per = {};
@@ -135,6 +138,7 @@ async function refreshConnections() {
 
 async function loadActive({ refresh = false } = {}) {
   const id = state.active;
+  if (!id) { renderPanel(); return; }
   const p = perProvider(id);
   const conn = state.connections?.[id];
   if (!state.pageUrl) { renderPanel(); return; }
@@ -434,7 +438,9 @@ function tabStatus(id) {
 function renderTabs() {
   const el = document.getElementById('tabs');
   if (!el) return;
-  replace(el, PROVIDERS.map((p, i) => {
+  const tabs = visibleProviders(state.providers);
+  el.hidden = tabs.length === 0;
+  replace(el, tabs.map((p, i) => {
     const selected = state.active === p.id;
     const status = tabStatus(p.id);
     return h('button', {
@@ -447,7 +453,7 @@ function renderTabs() {
       onclick: () => selectTab(p.id),
       onkeydown: (e) => {
         if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-          const next = PROVIDERS[(i + (e.key === 'ArrowRight' ? 1 : PROVIDERS.length - 1)) % PROVIDERS.length];
+          const next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
           selectTab(next.id);
           document.getElementById(`tab-${next.id}`)?.focus();
         }
@@ -469,8 +475,15 @@ function selectTab(id) {
 function renderPanel() {
   const el = document.getElementById('panel');
   if (!el) return;
-  el.setAttribute('aria-labelledby', `tab-${state.active}`);
   const id = state.active;
+  if (!id) {
+    el.removeAttribute('aria-labelledby');
+    el.removeAttribute('role');
+    replace(el, h('p', { class: 'empty' }, 'No search providers are enabled for this site. Ask the person who deployed Search Insights to configure Google or Bing.'));
+    return;
+  }
+  el.setAttribute('role', 'tabpanel');
+  el.setAttribute('aria-labelledby', `tab-${id}`);
   const p = perProvider(id);
   const parts = [connectionBar(id, p)];
 

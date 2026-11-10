@@ -95,6 +95,7 @@ Edit the `SITES.sites[]` entry:
 | `paths` | URL mapping rules (see [Production-domain mapping](#production-domain-mapping)). |
 | `google.properties` | Search Console properties this site may query, in order of preference: `sc-domain:example.com` (Domain property) and/or `https://example.com/` (URL-prefix property). |
 | `google.maxQueryRows` | Query rows loaded per period (default 1000, max 25000 per request; paginated). |
+| `bing` | Optional. **Omit the whole `bing` section to hide the Bing tab** for this site; the same applies to `google`. |
 | `bing.siteUrl` | The verified Bing site, e.g. `https://example.com/`. The backend never queries another site, even if the API key covers more. |
 | `bing.auth` | `"apiKey"` (deployment-owned key, single-site install) or `"oauth"` (each author connects). |
 | `access.allowedUserIds` | Optional list of Adobe IMS user ids allowed to use the backend. Empty means anyone who can read the site in DA. Recommended when Bing uses a shared API key. |
@@ -213,7 +214,7 @@ cp .dev.vars.example .dev.vars               # set TOKEN_ENCRYPTION_KEY (and pro
 npm run dev                                  # http://localhost:8787
 ```
 
-- **Demo mode:** open `http://localhost:8787/?demo`. It needs no credentials and no Workspace.
+- **Demo mode:** open `http://localhost:8787/?demo`. It needs no credentials and no Workspace. Add `&providers=google` to preview a Google-only site.
 - **Inside Workspace:** add a *second* library row so the production row stays untouched:
 
   | title | path | ref |
@@ -294,7 +295,7 @@ Other mapping behaviour:
 npm test
 ```
 
-There are 91 focused tests (`node:test`, no dependencies) covering:
+There are 95 focused tests (`node:test`, no dependencies) covering:
 - URL mapping
 - comparison windows and date boundaries
 - CTR and percentage points
