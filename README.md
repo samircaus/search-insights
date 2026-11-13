@@ -4,9 +4,9 @@ Search Insights is an Experience Workspace extension that shows Google Search Co
 
 Authors usually have to leave the editor for this. They open Search Console in another tab, find the property, filter by page, set the dates and copy numbers back. Search Insights does those steps for the open document and keeps the author in the editor.
 
-<img src="docs/screenshots/overview.png" alt="Search Insights panel: page URL, period picker, clicks, impressions, CTR, average position and index status" width="460">
+<img src="docs/screenshots/search-insights-workspace-live.png" alt="Experience Workspace with the headless page, a Chat response and live Search Insights data" width="1000">
 
-_Screenshots in this README use demo mode (`?demo`), so the numbers are fixtures and no real account appears. [Verification](docs/verification.md) records what was tested against live Search Console data._
+_Screenshots show live Search Console data for `edgepatterns.dev/architecture/headless` captured on 13 November 2026. The Workspace capture shows a Chat response, not the unsent prompt. The example prompt below uses demo data._
 
 - **Try the demo:** <https://search.edgepatterns.dev/?demo&providers=google>. No sign-in needed.
 - **Frontend:** vanilla JavaScript using the [DA App SDK](https://www.aem.live/docs/ew/developing/apps-plugins) and Workspace's own Spectrum 2 styles from `da.live`. No framework, no build step.
@@ -39,23 +39,23 @@ _Screenshots in this README use demo mode (`?demo`), so the numbers are fixtures
 
 ## What the panel shows
 
-The author opens a document in Experience Workspace and picks **Search Insights** from the side-panel switcher. The panel reads the document path from the SDK and maps it to the public URL. In the example, `/martech/fpid` in DA becomes `edgepatterns.dev/martech/fpid`. **Change URL** lets the author pick another URL on the same site.
+The author opens a document in Experience Workspace and picks **Search Insights** from the side-panel switcher. The panel reads the document path from the SDK and maps it to the public URL. In the screenshots, `/architecture/headless` in DA becomes `edgepatterns.dev/architecture/headless`. **Change URL** lets the author pick another URL on the same site.
 
 ### Period and page totals
 
 The period picker offers 7, 28 or 90 days. Each period is compared with the previous period of the same length, and the dates are shown next to the picker. The period ends on the last day Google has finalized, usually two or three days ago.
 
-Below it are the page totals: clicks, impressions, click-through rate (CTR) and average position. CTR changes are in percentage points. For position, a lower number is better, so the panel says "Worse by 0.5" rather than showing a bare "+0.5".
+<img src="docs/screenshots/search-insights-overview-live.png" alt="Live Search Insights panel with the period, four page metrics and index status" width="720">
+
+Below it are the page totals: clicks, impressions, click-through rate (CTR) and average position. CTR changes are in percentage points. For position, a lower number is better, so the panel says "Improved 7.7" to show the direction.
 
 ### Index status
-
-<img src="docs/screenshots/index-details.png" alt="Index status expanded: coverage, last crawl, Google and declared canonical, sitemap and rich results" width="460">
 
 The panel asks Google's URL Inspection API whether the page is indexed. The one-line summary is enough most of the time. **Index details** shows the coverage state, last crawl, the canonical Google picked compared with the one the page declares, the sitemap and any rich results. This is Google's stored result from its last crawl, not a live test.
 
 ### Suggestions
 
-<img src="docs/screenshots/suggestions.png" alt="Two selected suggestions, one with What to check expanded, and the Ask in Chat button" width="460">
+<img src="docs/screenshots/search-insights-suggestions-live.png" alt="Two live suggestions, one selected for Ask in Chat" width="720">
 
 Suggestions are rule-based, not AI-generated. Each one is backed by numbers from the report:
 
@@ -75,7 +75,7 @@ The author ticks the suggestions or queries that matter and clicks **Ask in Chat
 In demo mode the button is disabled, because there is no Workspace host to receive the prompt.
 
 <details>
-<summary>Example prompt for one selected suggestion and one selected query</summary>
+<summary>Example prompt using demo data for one selected suggestion and one selected query</summary>
 
 ```text
 Use these Search Insights results as evidence when helping me improve the page.
@@ -115,15 +115,13 @@ Shortened. The full prompt also lists page totals, freshness, last crawl and can
 
 ### Queries
 
-<img src="docs/screenshots/queries.png" alt="Query table with one selected row, previous-period values under each number, and Show more" width="460">
+<img src="docs/screenshots/search-insights-queries-live.png" alt="Five of 58 returned queries with their previous-period values" width="720">
 
 The query table lists the queries Google returned for the page, with the previous period's value under each number. Columns sort on click. The filter box and the menu (position 8 to 20, CTR below page CTR, not in previous rows, selected only) apply to all returned rows. The table shows 10 rows at a time, and **Show more** adds 10 without losing selections. A note under the table says what share of the page's clicks the listed queries cover, because Google omits some queries.
 
 ### Account
 
-<img src="docs/screenshots/account-menu.png" alt="Account menu with the signed-in Google account and Refresh data" width="460">
-
-Each author connects their own Google account once, in a popup. The account stays out of sight until the author opens **Account**, so it does not appear in screen shares. The menu also has **Refresh data** and **Disconnect**. If the author's account can reach more than one allowed property, a property picker appears there too.
+Each author connects their own Google account once, in a popup. The account is visible only when the author opens **Account**. The menu also has **Refresh data** and **Disconnect**. If the author's account can reach more than one allowed property, a property picker appears there too.
 
 ## Why it works this way
 

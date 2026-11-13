@@ -19,6 +19,7 @@ Last updated 2026-11-13. Each line is either **live-tested**, **fixture-tested**
 | Workspace page resolution and backend access | The `/martech/fpid` document resolved to `https://edgepatterns.dev/martech/fpid` with a matching canonical. Authenticated `/api/config`, `/api/status` and `/api/page-check` requests returned 200. |
 | Provider configuration | On 2026-11-10, both Google and Bing appeared as not configured in the live Workspace panel. |
 | Google connection, Search Analytics and URL Inspection | On 2026-11-13 the user connected `sc-domain:edgepatterns.dev`. The Workspace panel showed live metrics, four query rows, and an indexed URL Inspection result for `/martech/fpid`: [overview](screenshots/live-google-overview.png), [queries](screenshots/live-google-queries.png). |
+| Live headless page | A user-supplied Workspace capture shows 1,469 impressions, 58 returned queries and a selected suggestion for `/architecture/headless`: [Workspace](screenshots/search-insights-workspace-live.png), [overview](screenshots/search-insights-overview-live.png), [queries](screenshots/search-insights-queries-live.png). A Chat response is visible, but the handoff itself is not shown. |
 
 ## Fixture-tested (unit tests, `npm test`)
 
@@ -37,7 +38,7 @@ These cover the backend with mocked IMS, DA, Google and Bing responses shaped fr
 - redaction
 - page-check redirect safety
 - Local Spectrum 2 preview with demo fixtures at 300 px and 420 px in light and dark modes. Workspace styles and Adobe Clean fonts loaded under the plugin CSP; URL override, query filtering, brief preview and keyboard tab switching were exercised. The deployed revision has not been independently identified.
-- Local demo: account details are hidden until requested; the query table shows 10 rows initially, preserves selections when expanded, and filters across all returned rows. The live deployment of these changes has not been verified.
+- Local demo: account details are hidden until requested; the query table shows 10 rows initially, preserves selections when expanded, and filters across all returned rows. The live Workspace capture shows the Account control and a selected suggestion, but does not show pagination being exercised.
 
 ## Unverified or needs further testing
 
@@ -48,12 +49,12 @@ These cover the backend with mocked IMS, DA, Google and Bing responses shaped fr
 | Whether the URL-prefix property `https://edgepatterns.dev/` is available to the Google account | The 13 November panel showed it as inaccessible; it may be missing, unverified or lack permission. The domain property is accessible. |
 | Live Bing OAuth and `GetPageQueryStats` / `GetPageStats` row-date granularity | `BING_CLIENT_ID` / `BING_CLIENT_SECRET`; Bing OAuth client registration |
 | Whether Bing's JSON GET expects `page` JSON-quoted (the reference samples show `page=%22http...%22`) | Live Bing response. The adapter currently sends the plain URL. If live calls return no rows for pages that have data, try quoting. |
-| **Ask in Chat** in the live Workspace host | Signed-in session with the updated plugin deployed; the SDK call has no host acknowledgement |
+| **Ask in Chat** handoff in the live Workspace host | Verify that selected evidence appears in an unsent prompt; the capture shows a Chat response but not the handoff itself. The SDK call has no host acknowledgement. |
 | `experience: fullsize-dialog` | Same |
 
 ## Bing for edgepatterns.dev
 
-The selected live-demo scope is Google only. Bing remains in the site configuration without credentials and has not been tested live. The local UI now hides its tab until credentials are configured; that change requires deployment. The adapter, tests and demo fixtures remain in place.
+The selected live-demo scope is Google only. Bing remains in the site configuration without credentials and has not been tested live. The Workspace capture shows no Bing tab. The adapter, tests and demo fixtures remain in place.
 
 ## Next live test run (checklist)
 
