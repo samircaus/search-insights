@@ -119,7 +119,7 @@ export async function exchangeCode({
     throw new AppError('PROVIDER_UNAVAILABLE', 'no refresh token returned');
   }
   if (provider === 'google' && !String(json.scope || '').includes('webmasters')) {
-    throw new AppError('PROPERTY_ACCESS_DENIED', 'search console scope not granted');
+    throw new AppError('SCOPE_NOT_GRANTED', 'search console scope not granted');
   }
   return {
     refreshToken: json.refresh_token,

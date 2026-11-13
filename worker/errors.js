@@ -8,6 +8,7 @@ export const ERRORS = {
   NOT_CONNECTED: { status: 409, message: 'Not connected. Connect your account to load data.' },
   REAUTH_REQUIRED: { status: 409, message: 'Authorization expired or was revoked. Reconnect your account.' },
   PROPERTY_ACCESS_DENIED: { status: 403, message: 'The connected account cannot access this property.' },
+  SCOPE_NOT_GRANTED: { status: 403, message: 'Search Console access was not granted. Connect again and tick the Search Console checkbox on the Google consent screen.' },
   RATE_LIMITED: { status: 429, message: 'The provider rate limit was reached. Try again in a few minutes.' },
   PROVIDER_UNAVAILABLE: { status: 502, message: 'The provider is unavailable right now. Try again later.' },
   OAUTH_STATE_INVALID: { status: 400, message: 'The sign-in request expired or was already used. Start the connection again.' },

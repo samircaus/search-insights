@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildResult } from '../web/core/normalize.js';
 import { findOpportunities, mergeThresholds, DEFAULT_THRESHOLDS } from '../web/core/opportunities.js';
-import { buildBrief, briefToHtml } from '../web/core/brief.js';
+import { buildBrief, buildWorkspacePrompt, briefToHtml } from '../web/core/brief.js';
 import { comparisonWindows } from '../web/core/dates.js';
 
 function result({
@@ -121,6 +121,48 @@ test('brief without comparison says so', () => {
   const r = result({ comparable: false, rows: [{ query: 'q', clicks: 1, impressions: 200, position: 5 }] });
   const b = buildBrief({ result: r, selectedQueries: ['q'] });
   assert.match(b.markdown, /## What changed\n\n- none/);
+});
+
+test('Workspace AI prompt includes selected evidence without generic brief sections', () => {
+  const rows = [
+    { query: 'selected query', clicks: 5, impressions: 1000, position: 3 },
+    { query: 'unselected query', clicks: 8, impressions: 500, position: 4 },
+  ];
+  const r = result({ rows, prevRows: rows });
+  const card = findOpportunities(r).cards.find((c) => c.queries.includes('selected query'));
+  const b = buildBrief({ result: r, selectedQueries: [], selectedCards: [card] });
+  const prompt = buildWorkspacePrompt(b);
+  assert.match(prompt, /https:\/\/example\.com\/page/);
+  assert.match(prompt, /selected query/);
+  assert.doesNotMatch(prompt, /unselected query/);
+  assert.match(prompt, /## Suggested checks/);
+  assert.match(prompt, /## Caveats/);
+  assert.doesNotMatch(prompt, /Questions for the author|Follow-up|Editing brief/);
+  assert.match(prompt, /only where supported by the selected queries and checks/);
+  assert.match(prompt, /Ask before changing or replacing document content/);
+  assert.match(prompt, /Do not invent causes for performance changes or promise ranking gains/);
+});
+
+test('Workspace AI prompt distinguishes selected queries from suggestion evidence', () => {
+  const rows = [
+    { query: 'suggestion query', clicks: 5, impressions: 1000, position: 3 },
+    { query: 'selected query', clicks: 8, impressions: 500, position: 4 },
+  ];
+  const r = result({ rows, prevRows: rows });
+  const card = findOpportunities(r).cards.find((c) => c.type === 'low-ctr');
+  const prompt = buildWorkspacePrompt(buildBrief({
+    result: r, selectedQueries: ['selected query'], selectedCards: [card],
+  }));
+  assert.match(prompt, /## Selected queries\n- “selected query”/);
+  assert.match(prompt, /## Queries from selected suggestions\n- “suggestion query”/);
+
+  const withoutSelection = buildWorkspacePrompt(buildBrief({ result: r, selectedCards: [card] }));
+  assert.doesNotMatch(withoutSelection, /selected query/);
+  assert.match(withoutSelection, /## Queries from selected suggestions\n- “suggestion query”/);
+
+  const overlapping = buildBrief({ result: r, selectedQueries: ['suggestion query'], selectedCards: [card] });
+  assert.equal(overlapping.queryCount, 1);
+  assert.ok(!overlapping.sections.some((section) => section.heading === 'Queries from selected suggestions'));
 });
 
 test('brief HTML escapes untrusted query text', () => {

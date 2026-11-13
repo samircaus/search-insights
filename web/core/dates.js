@@ -87,3 +87,12 @@ export function fmtRange(range) {
   if (!range) return '—';
   return `${fmtDate(range.start)} – ${fmtDate(range.end)}`;
 }
+
+/** "Oct 9 – Nov 5, 2026"; the year is dropped from the start (or entirely with omitYear) when both ends share it. */
+export function fmtRangeShort(range, { omitYear = false } = {}) {
+  if (!range || !isYmd(range.start) || !isYmd(range.end)) return fmtRange(range);
+  const md = (ymd) => new Date(`${ymd}T00:00:00Z`).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric' });
+  const sameYear = range.start.slice(0, 4) === range.end.slice(0, 4);
+  if (!sameYear) return fmtRange(range);
+  return `${md(range.start)} – ${md(range.end)}${omitYear ? '' : `, ${range.end.slice(0, 4)}`}`;
+}

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { handle } from '../worker/app.js';
 import { memoryStore, secureStore } from '../worker/store.js';
-import { startAuthorization, consumeState, getAccessToken, tokenKey } from '../worker/oauth.js';
+import { startAuthorization, consumeState, getAccessToken, tokenKey, exchangeCode } from '../worker/oauth.js';
 import { redact } from '../worker/redact.js';
 import { extractCanonical, checkPublishedPage } from '../worker/page-check.js';
 import { encryptJson, decryptJson } from '../worker/crypto.js';
@@ -231,4 +231,15 @@ test('site config validation', () => {
   assert.ok(validateSite({ ...SITE, productionOrigin: 'http://x.dev' }).length);
   assert.ok(validateSite({ ...SITE, google: { properties: ['edgepatterns.dev'] } }).length);
   assert.ok(validateSite({ ...SITE, bing: { siteUrl: 'https://x.dev/', auth: 'magic' } }).length);
+});
+
+test('google consent without the Search Console checkbox reports a scope error', async () => {
+  const fetchImpl = async () => new Response(JSON.stringify({
+    access_token: 'a', refresh_token: 'r', expires_in: 3600, scope: 'openid email',
+  }), { status: 200 });
+  await assert.rejects(exchangeCode({
+    provider: 'google', code: 'c', record: { verifier: 'v' },
+    env: { GOOGLE_CLIENT_ID: 'id', GOOGLE_CLIENT_SECRET: 's' },
+    requestUrl: 'https://search.edgepatterns.dev/oauth/google/callback', fetchImpl,
+  }), { code: 'SCOPE_NOT_GRANTED' });
 });

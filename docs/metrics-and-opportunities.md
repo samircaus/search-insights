@@ -17,7 +17,7 @@
 - Bing: taken from `GetPageStats` when the page is listed there; otherwise summed from query rows and labelled as such.
 
 **Comparison windows:**
-- Google: the latest finalized date for the property (property-wide `date` query, `dataState: final`) ends the current window. The previous window is the immediately preceding window of equal length, e.g. 28 vs 28 days, inclusive. Dates are Pacific Time calendar days. Arithmetic is on calendar dates, so DST cannot shift boundaries.
+- Google: the latest finalized date for the property (property-wide `date` query, `dataState: final`) ends the current window. The previous window is the immediately preceding window of equal length, e.g. 28 vs 28 days, inclusive. The panel lets the user pick 7, 28 or 90 days; Bing periods follow its weekly row dates. Dates are Pacific Time calendar days. Arithmetic is on calendar dates, so DST cannot shift boundaries.
 - Bing: windows are built from the dates Bing attaches to rows. A comparison is offered only if both windows contain the same number of row dates.
 
 ## Opportunity rules
@@ -33,8 +33,8 @@ All rules are deterministic. The thresholds below are defaults; override them pe
 | **In this period's data** | Valid comparison, previous period returned rows and was **not** truncated, query not among previous returned rows, impressions ≥ `newlyVisible.minImpressions` (30) | Consider whether the query reflects a need worth addressing, and check existing coverage first. | That the query is new |
 
 - **Card limits:** at most three cards per query rule. A query flagged by one rule is not repeated by another.
-- **Brief wording:** because page content is not inspected, the brief lists *checks* and *questions*, not claims.
-- **Caveats in the brief:** it always includes the providers' top-rows limitation, the coverage share, and a follow-up date one reporting period after the current end date.
+- **Prompt wording:** because page content is not inspected, the prompt lists checks rather than claims.
+- **Caveats in the prompt:** it includes the providers' top-rows limitation, any applicable coverage warning and the caveats for the selected suggestions.
 
 ## Example override
 

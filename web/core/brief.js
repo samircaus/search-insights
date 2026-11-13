@@ -50,9 +50,15 @@ export function buildBrief({
   const p = result.periods || {};
   const s = result.summary;
   const rowsByQuery = new Map(result.queries.map((r) => [r.query, r]));
-  const queries = uniq([...selectedQueries, ...selectedCards.flatMap((c) => c.queries || [])])
+  const explicitQueries = uniq(selectedQueries)
     .map((q) => rowsByQuery.get(q))
     .filter(Boolean);
+  const explicitNames = new Set(explicitQueries.map((row) => row.query));
+  const relatedQueries = uniq(selectedCards.flatMap((c) => c.queries || []))
+    .filter((q) => !explicitNames.has(q))
+    .map((q) => rowsByQuery.get(q))
+    .filter(Boolean);
+  const queries = [...explicitQueries, ...relatedQueries];
 
   const sections = [];
   sections.push({
@@ -94,8 +100,11 @@ export function buildBrief({
     });
   }
 
-  if (queries.length) {
-    sections.push({ heading: 'Selected queries', lines: queries.map(queryLine) });
+  if (explicitQueries.length) {
+    sections.push({ heading: 'Selected queries', lines: explicitQueries.map(queryLine) });
+  }
+  if (relatedQueries.length) {
+    sections.push({ heading: 'Queries from selected suggestions', lines: relatedQueries.map(queryLine) });
   }
 
   if (selectedCards.length) {
@@ -150,6 +159,20 @@ export function buildBrief({
     .concat(...sections.map((sec) => [sec.heading.toUpperCase(), ...sec.lines.map((l) => `• ${l}`), '']))
     .join('\n').trim();
   return { title, sections, markdown, text, queryCount: queries.length };
+}
+
+export function buildWorkspacePrompt(brief) {
+  const evidence = brief.sections
+    .filter((section) => section.heading !== 'Questions for the author' && section.heading !== 'Follow-up')
+    .flatMap((section) => [`## ${section.heading}`, ...section.lines.map((line) => `- ${line}`), '']);
+  return [
+    'Use these Search Insights results as evidence when helping me improve the page.',
+    'Suggest specific edits only where supported by the selected queries and checks.',
+    'Do not invent causes for performance changes or promise ranking gains.',
+    'Ask before changing or replacing document content.',
+    '',
+    ...evidence,
+  ].join('\n').trim();
 }
 
 /** Escape text for safe insertion as HTML. */

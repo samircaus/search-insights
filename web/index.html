@@ -8,13 +8,16 @@
   <link rel="icon" href="data:,">
   <!-- Load the DA App SDK early so it is listening before Workspace posts its handshake. -->
   <script src="https://da.live/nx/utils/sdk.js" type="module"></script>
+  <link rel="stylesheet" href="https://da.live/nx2/styles/styles.css">
+  <link rel="stylesheet" href="https://da.live/nx2/styles/buttons.css">
+  <link rel="stylesheet" href="https://da.live/nx2/styles/form.css">
   <link rel="stylesheet" href="./styles.css">
   <script src="./app.js" type="module"></script>
 </head>
 <body>
-  <div id="app" class="app" aria-live="polite">
+  <main id="app" class="app" aria-live="polite">
     <p class="boot">Loading Search Insights…</p>
-  </div>
+  </main>
   <div id="announcer" class="visually-hidden" role="status" aria-live="polite"></div>
 </body>
 </html>

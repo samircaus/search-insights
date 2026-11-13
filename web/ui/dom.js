@@ -27,3 +27,10 @@ export function announce(msg) {
 export function replace(el, ...children) {
   el.replaceChildren(...children.flat(Infinity).filter((c) => c !== null && c !== undefined && c !== false));
 }
+
+export function replaceKeepingFocus(el, ...children) {
+  const focusedId = el.contains(document.activeElement) ? document.activeElement.id : null;
+  replace(el, ...children);
+  const focused = focusedId && document.getElementById(focusedId);
+  if (focused && el.contains(focused)) focused.focus();
+}

@@ -41,6 +41,19 @@ function timeout(ms) {
   return new Promise((resolve) => { setTimeout(() => resolve({ timedOut: true }), ms); });
 }
 
+export function createWorkspaceActions(actions = {}) {
+  return {
+    canInsertHtml: typeof actions.sendHTML === 'function',
+    canInsertText: typeof actions.sendText === 'function',
+    canClose: typeof actions.closeLibrary === 'function',
+    canSetPrompt: typeof actions.setPrompt === 'function',
+    insertHtml: (html) => actions.sendHTML(html),
+    insertText: (text) => actions.sendText(text),
+    setPrompt: (text) => actions.setPrompt(text, { autoSend: false }),
+    close: () => actions.closeLibrary(),
+  };
+}
+
 /**
  * @returns {Promise<{status:'outside'}|{status:'no-handshake'}|{status:'sdk-unavailable'}|
  *   {status:'ready', context, contextKeys, capabilities, getToken, actions}>}
@@ -68,13 +81,6 @@ export async function connectWorkspace({ timeoutMs = 6000 } = {}) {
     contextKeys: Object.keys(context || {}).sort(),
     capabilities: { ...capabilities },
     getToken: () => latestToken,
-    actions: {
-      canInsertHtml: typeof actions.sendHTML === 'function',
-      canInsertText: typeof actions.sendText === 'function',
-      canClose: typeof actions.closeLibrary === 'function',
-      insertHtml: (html) => actions.sendHTML(html),
-      insertText: (text) => actions.sendText(text),
-      close: () => actions.closeLibrary(),
-    },
+    actions: createWorkspaceActions(actions),
   };
 }

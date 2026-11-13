@@ -24,10 +24,10 @@ export const DEMO_SITE = {
 };
 
 export const DEMO_PAGES = [
-  { path: '/martech/fpid', label: 'FPID guide — rich data with opportunities' },
-  { path: '/labs', label: 'Labs — low volume' },
-  { path: '/about', label: 'About — no search data' },
-  { path: '/personalization/experimentation', label: 'Experimentation — other canonical; Bing fails' },
+  { path: '/martech/fpid', label: 'FPID guide: rich data' },
+  { path: '/labs', label: 'Labs: low volume' },
+  { path: '/about', label: 'About: no search data' },
+  { path: '/personalization/experimentation', label: 'Experimentation: other canonical, Bing fails' },
 ];
 
 // [query, curClicks, curImpr, curPos, prevClicks|null, prevImpr, prevPos]
@@ -52,16 +52,20 @@ const FPID_ROWS = [
   ['web sdk identity', 0, 210, 24.6, 1, 190, 23.0],
 ];
 
-function fpidRows(which) {
+// Demo figures are defined for 28 days and scaled for other windows.
+const scaled = (n, days) => Math.round((n * days) / 28);
+
+function fpidRows(which, days) {
   return FPID_ROWS
     .filter((r) => which === 'cur' || r[4] !== null)
     .map((r) => (which === 'cur'
-      ? { query: r[0], clicks: r[1], impressions: r[2], position: r[3] }
-      : { query: r[0], clicks: r[4], impressions: r[5], position: r[6] }));
+      ? { query: r[0], clicks: scaled(r[1], days), impressions: scaled(r[2], days), position: r[3] }
+      : { query: r[0], clicks: scaled(r[4], days), impressions: scaled(r[5], days), position: r[6] }))
+    .filter((r) => r.impressions > 0);
 }
 
-function googleResult(path) {
-  const win = comparisonWindows(LATEST, 28);
+function googleResult(path, days = 28) {
+  const win = comparisonWindows(LATEST, days);
   const base = {
     provider: 'google',
     property: 'sc-domain:edgepatterns.dev',
@@ -83,11 +87,11 @@ function googleResult(path) {
   if (path === '/martech/fpid' || path === '/personalization/personalization-and-optimization') {
     return buildResult({
       ...base,
-      currentTotals: { clicks: 312, impressions: 13140, position: 8.9 },
-      previousTotals: { clicks: 401, impressions: 13620, position: 8.4 },
-      currentRows: fpidRows('cur'),
-      previousRows: fpidRows('prev'),
-      comparison: { available: true, kind: 'equal-length-adjacent', days: 28 },
+      currentTotals: { clicks: scaled(312, days), impressions: scaled(13140, days), position: 8.9 },
+      previousTotals: { clicks: scaled(401, days), impressions: scaled(13620, days), position: 8.4 },
+      currentRows: fpidRows('cur', days),
+      previousRows: fpidRows('prev', days),
+      comparison: { available: true, kind: 'equal-length-adjacent', days },
     });
   }
   if (path === '/labs') {
@@ -100,7 +104,7 @@ function googleResult(path) {
         { query: 'aem experiments', clicks: 0, impressions: 9, position: 22.1 },
       ],
       previousRows: [{ query: 'edge delivery labs', clicks: 1, impressions: 14, position: 11.0 }],
-      comparison: { available: true, kind: 'equal-length-adjacent', days: 28 },
+      comparison: { available: true, kind: 'equal-length-adjacent', days },
     });
   }
   return buildResult({
@@ -265,10 +269,10 @@ export function createDemoApi({ providers = ['google', 'bing'] } = {}) {
     async properties() {
       return { properties: [{ property: 'sc-domain:edgepatterns.dev', accessible: true, permissionLevel: 'siteOwner' }] };
     },
-    async report(provider, pageUrl) {
+    async report(provider, pageUrl, { days } = {}) {
       await wait(250);
       const path = new URL(pageUrl).pathname;
-      return provider === 'bing' ? bingResult(path) : googleResult(path);
+      return provider === 'bing' ? bingResult(path) : googleResult(path, days);
     },
     async inspect(pageUrl) {
       await wait(350);

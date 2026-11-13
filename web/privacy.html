@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Privacy policy | Search Insights</title>
+<link rel="icon" href="/logo.png">
+<link rel="stylesheet" href="/legal.css">
+</head>
+<body>
+<header><img src="/logo.png" alt=""><a href="/about">Search Insights</a></header>
+<main>
+<h1>Privacy policy</h1>
+<p class="meta">Last updated 12 November 2026</p>
+<p>This policy explains what Search Insights, operated by Samir Caus at search.edgepatterns.dev, does with your data when you use it inside Adobe Experience Workspace.</p>
+
+<h2>What we access</h2>
+<p>When you connect Google, you grant read-only access to Google Search Console (scope <code>webmasters.readonly</code>) and your Google account email address (scopes <code>openid</code> and <code>email</code>). We use this access only to read search performance and URL Inspection results for the page you are editing.</p>
+<p>From Experience Workspace we receive your Adobe identity token, which we use to confirm who you are and that you can access the site you are editing.</p>
+
+<h2>What we store</h2>
+<ul>
+<li>Your Google refresh token, encrypted with AES-GCM before it is stored, together with your Google email address and the time you connected. These are kept until you disconnect.</li>
+<li>Short-lived Google access tokens, encrypted and kept for up to one hour.</li>
+<li>Search Console report results for a page, encrypted and cached for 15 minutes to reduce calls to Google.</li>
+<li>A random sign-in state value, kept for up to 10 minutes while you complete the Google consent screen.</li>
+</ul>
+<p>Data is stored in Cloudflare Workers KV. Operational logs record errors and request paths, not tokens or report contents.</p>
+
+<h2>What we do not do</h2>
+<p>We do not sell, share, or transfer your data to third parties, use it for advertising, or use it to train AI models. We do not write to Search Console. Data is only sent to Google (to fetch your reports) and Cloudflare (which hosts the service).</p>
+<p>If you use the "Draft prompt for Workspace AI" action, the brief you selected is placed in the Experience Workspace chat box. It is only sent if you send it yourself, and from then on Adobe's terms for Experience Workspace apply.</p>
+
+<h2>Google API Services User Data Policy</h2>
+<p>Search Insights' use and transfer of information received from Google APIs adheres to the <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, including the Limited Use requirements.</p>
+
+<h2>Removing your data</h2>
+<p>Use Disconnect in the panel. This revokes the token with Google and deletes the stored token. You can also remove access at any time from <a href="https://myaccount.google.com/permissions">your Google account permissions</a>. Cached reports expire on their own within 15 minutes. To ask for deletion of anything else, email <a href="mailto:contact@edgepatterns.dev">contact@edgepatterns.dev</a>.</p>
+
+<h2>Changes</h2>
+<p>If this policy changes, the date above changes with it.</p>
+
+<h2>Contact</h2>
+<p><a href="mailto:contact@edgepatterns.dev">contact@edgepatterns.dev</a></p>
+</main>
+<footer><a href="/about">About</a><a href="/privacy">Privacy policy</a><a href="/terms">Terms of service</a></footer>
+</body>
+</html>

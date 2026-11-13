@@ -34,15 +34,15 @@ The Experience Workspace host (`iframe-protocol.js`) posts the following about *
 
 - **Never resolves outside Workspace:** if no handshake arrives, the promise stays pending. `web/workspace.js` therefore times out after 6 s and shows "Open from Experience Workspace" plus a demo link. It also detects top-level loading immediately (`window.parent === window`).
 - **Token refresh:** later messages that carry a `token` refresh IMS details inside the SDK, which does not expose them. The adapter tracks the same messages, but only from `window.parent` with a `https://*.da.live` origin. That way API calls use the latest token.
-- **What the adapter keeps:** only the documented context keys (`org`, `repo`, `site`, `ref`, `path`, `view`, `hash`, `branch`). The Diagnostics disclosure lists the context *keys* and capability names. The token is never logged or rendered.
+- **What the adapter keeps:** only the documented context keys (`org`, `repo`, `site`, `ref`, `path`, `view`, `hash`, `branch`). The Diagnostics disclosure (shown only when the panel URL has `?debug`) lists the context *keys* and capability names. The token is never logged or rendered.
 
 ## Actions used
 
 | Action | Status | Use |
 | --- | --- | --- |
-| `sendHTML(html)` | Documented, and handled by the host as an insertion at the cursor (fire-and-forget) | Optional **Insert into document…** after an explicit confirmation. All brief text is HTML-escaped. |
-| `sendText`, `closeLibrary` | Documented | Feature-detected; not required. |
-| `sendHTML(html, { replace: true })`, `saveDocument`, `subscribeLiveDocument`, `setPrompt`, … | In SDK source; capability-gated | **Not used.** The plugin never replaces content, saves or publishes. |
+| `sendHTML`, `sendText`, `closeLibrary` | Documented | Not used in the Chat workflow. |
+| `setPrompt(text, { autoSend: false })` | Present in the SDK and handled by the current Canvas host | **Ask in Chat** requests an evidence-based prompt in Chat without sending it. The action is fire-and-forget, has no host capability flag and does not confirm that Chat opened. The author reviews and sends the prompt. |
+| `sendHTML(html, { replace: true })`, `saveDocument`, `subscribeLiveDocument`, … | In SDK source; capability-gated | Not used. The plugin never replaces content, saves or publishes. |
 
 ## Library registration
 

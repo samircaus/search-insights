@@ -10,7 +10,6 @@
 import {
   isNum, fmtInt, fmtPct, fmtPos, fmtRelChange, fmtPp, fmtPosChange,
 } from './metrics.js';
-import { fmtRange } from './dates.js';
 
 export const DEFAULT_THRESHOLDS = Object.freeze({
   minPageImpressions: 100,
@@ -30,14 +29,6 @@ export function mergeThresholds(overrides = {}) {
 }
 
 const PROVIDER_LABEL = { google: 'Google Search', bing: 'Bing' };
-
-function periodText(result) {
-  const p = result.periods || {};
-  return {
-    current: fmtRange(p.current),
-    previous: p.previous ? fmtRange(p.previous) : null,
-  };
-}
 
 function queryEvidence(row) {
   const c = row.current;
@@ -64,8 +55,8 @@ function lowCtrCards(result, t, pageCtr) {
     strength: 'review',
     title: `Low click-through for “${row.query}”`,
     why: `This query had ${fmtInt(row.current.impressions)} impressions at an average position of `
-      + `${fmtPos(row.current.position)}, but a CTR of ${fmtPct(row.current.ctr)} — at most `
-      + `${Math.round(cfg.maxRatioToPageCtr * 100)}% of this page's overall CTR (${fmtPct(pageCtr)}).`,
+      + `${fmtPos(row.current.position)}, but a CTR of ${fmtPct(row.current.ctr)}, well below `
+      + `this page's overall CTR of ${fmtPct(pageCtr)}.`,
     evidence: [...queryEvidence(row), { label: 'Page CTR', value: fmtPct(pageCtr) }],
     queries: [row.query],
     checks: [
@@ -90,8 +81,8 @@ function nearFirstPageCards(result, t, exclude) {
     type: 'near-first-page',
     strength: 'consider',
     title: `“${row.query}” is near the first-page boundary`,
-    why: `Average position ${fmtPos(row.current.position)} with ${fmtInt(row.current.impressions)} impressions `
-      + `(rule: position ${cfg.minPosition}–${cfg.maxPosition}, at least ${cfg.minImpressions} impressions).`,
+    why: `Average position ${fmtPos(row.current.position)} with ${fmtInt(row.current.impressions)} impressions. `
+      + 'A small improvement could move it onto the first page of results.',
     evidence: queryEvidence(row),
     queries: [row.query],
     checks: [
@@ -120,14 +111,12 @@ function decliningClicksCard(result, t) {
     .filter((r) => r.previousStatus === 'present' && r.previous.clicks > r.current.clicks)
     .sort((a, b) => (b.previous.clicks - b.current.clicks) - (a.previous.clicks - a.current.clicks))
     .slice(0, 3);
-  const dates = periodText(result);
   return [{
     id: 'declining-clicks',
     type: 'declining-clicks',
     strength: 'review',
     title: 'Clicks to this page declined',
-    why: `Clicks fell from ${fmtInt(prev)} (${dates.previous}) to ${fmtInt(cur)} (${dates.current}), `
-      + `${fmtRelChange(ch.clicks)}.`,
+    why: `Clicks fell from ${fmtInt(prev)} to ${fmtInt(cur)} (${fmtRelChange(ch.clicks)}) compared with the previous period.`,
     evidence: [
       { label: 'Clicks', value: `${fmtInt(prev)} → ${fmtInt(cur)} (${fmtRelChange(ch.clicks)})` },
       { label: 'Impressions', value: `${fmtInt(s.previous.impressions)} → ${fmtInt(s.current.impressions)} (${fmtRelChange(ch.impressions)})` },
@@ -161,14 +150,12 @@ function newlyVisibleCards(result, t, exclude) {
     && r.previousStatus === 'not-in-returned-rows'
     && isNum(r.current.impressions) && r.current.impressions >= cfg.minImpressions);
   rows.sort((a, b) => b.current.impressions - a.current.impressions);
-  const dates = periodText(result);
   return rows.slice(0, cfg.maxCards).map((row) => ({
     id: `newly-visible:${row.query}`,
     type: 'newly-visible',
     strength: 'consider',
     title: `“${row.query}” appears in this period's data`,
-    why: `${fmtInt(row.current.impressions)} impressions in ${dates.current}; this query was not among the rows `
-      + `returned for ${dates.previous}.`,
+    why: `${fmtInt(row.current.impressions)} impressions this period. It was not among the top queries in the previous period.`,
     evidence: queryEvidence(row),
     queries: [row.query],
     checks: [

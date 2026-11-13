@@ -6,7 +6,7 @@
 Search Insights
 
 ## One-line description
-Google Search Console and Bing Webmaster Tools evidence for the page you are editing, with a copyable editing brief.
+Google Search Console and Bing Webmaster Tools evidence for the page you are editing, with a prompt for Workspace AI.
 
 ## Description
 Search Insights answers a content author's question without leaving Experience Workspace: *what brings people to this page, what has changed, and what should I review?*
@@ -17,7 +17,7 @@ Open it from the library while editing a page. It:
 - compares the latest finalized period with the previous one where the provider supports it
 - lists the queries people used to find the page
 
-Transparent rules then flag items worth reviewing: declining clicks, low click-through at good positions, queries near the first-page boundary, and queries appearing in this period's data. Each item shows its evidence, dates and cautious checks. Select evidence to generate an editing brief, preview it, and copy it as Markdown or plain text. You can optionally insert it into the document after confirming.
+Transparent rules flag items worth reviewing: declining clicks, low click-through at good positions, queries near the first-page boundary, and queries appearing in this period's data. Each item shows its evidence, dates and cautious checks. Select suggestions or queries and choose **Ask in Chat** to review a prompt in Workspace AI.
 
 Read-only by design: it never edits, saves or publishes content automatically.
 
@@ -28,7 +28,7 @@ Read-only by design: it never edits, saves or publishes content automatically.
 - Bing Webmaster Tools (OAuth or deployment API key, weekly data shown honestly)
 - Clear dates, freshness, units and change directions; CTR changes in percentage points
 - Deterministic opportunity cards with evidence and caveats; low-volume pages suppressed
-- Editing brief in Markdown or plain text; optional explicit insertion
+- Evidence-based Workspace AI prompt, reviewed and sent by the author
 - Server-side token storage (encrypted), Adobe IMS + DA site authorization, per-site configuration
 - Demo mode with labelled fixture data
 
