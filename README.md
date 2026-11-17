@@ -1,8 +1,6 @@
 # Search Insights for Experience Workspace
 
-Search Insights is an Experience Workspace extension that shows Google Search Console data for the page you are editing. It opens in the side panel next to the document, works out the page's public URL, and shows how that page performs in Google search: clicks, impressions, the queries people used, and whether Google has indexed it.
-
-Authors usually have to leave the editor for this. They open Search Console in another tab, find the property, filter by page, set the dates and copy numbers back. Search Insights does those steps for the open document and keeps the author in the editor.
+Search Insights brings Google Search Console data into the Experience Workspace side panel. Open a page to see its clicks, impressions, search queries and index status. You can also select results and pass them to Workspace Chat as a prompt.
 
 <img src="docs/screenshots/search-insights-workspace-live.png" alt="Experience Workspace with the headless page, a Chat response and live Search Insights data" width="1000">
 
@@ -10,54 +8,53 @@ _Screenshots show live Search Console data for `edgepatterns.dev/architecture/he
 
 - **Try the demo:** <https://search.edgepatterns.dev/?demo&providers=google>. No sign-in needed.
 - **Frontend:** vanilla JavaScript using the [DA App SDK](https://www.aem.live/docs/ew/developing/apps-plugins) and Workspace's own Spectrum 2 styles from `da.live`. No framework, no build step.
-- **Backend:** a Cloudflare Worker for OAuth, token storage, access checks and the Google and Bing API calls. The logic does not depend on Cloudflare (see [Hosting](#hosting-and-app-builder)).
-- **Providers:** Google Search Console (Search Analytics and URL Inspection, read-only scope). Bing Webmaster Tools is implemented and gets its own tab when configured.
+- **Backend:** a Cloudflare Worker handles OAuth, token storage, access checks and API calls. See [Hosting](#hosting-and-app-builder) for other options.
+- **Providers:** Google Search Console uses a read-only scope. Bing Webmaster Tools is optional and has not been tested with live credentials.
 
 ---
 
 ## Contents
 
 1. [What the panel shows](#what-the-panel-shows)
-2. [Why it works this way](#why-it-works-this-way)
-3. [How it works](#how-it-works)
-4. [Required accounts and permissions](#required-accounts-and-permissions)
-5. [Deployment options](#deployment-options)
-6. [Configure your site](#configure-your-site)
-7. [Google Search Console setup](#google-search-console-setup)
-8. [Bing Webmaster Tools setup](#bing-webmaster-tools-setup)
-9. [Secrets](#secrets)
-10. [Deploy the backend and frontend](#deploy-the-backend-and-frontend)
-11. [Register the plugin in Experience Workspace](#register-the-plugin-in-experience-workspace)
-12. [Local development](#local-development)
-13. [Production-domain mapping](#production-domain-mapping)
-14. [Using another site instead of edgepatterns.dev](#using-another-site-instead-of-edgepatternsdev)
-15. [Known limits and unsupported features](#known-limits-and-unsupported-features)
-16. [Tests](#tests)
-17. [More documentation](#more-documentation)
+2. [How it works](#how-it-works)
+3. [Required accounts and permissions](#required-accounts-and-permissions)
+4. [Deployment options](#deployment-options)
+5. [Configure your site](#configure-your-site)
+6. [Google Search Console setup](#google-search-console-setup)
+7. [Bing Webmaster Tools setup](#bing-webmaster-tools-setup)
+8. [Secrets](#secrets)
+9. [Deploy the backend and frontend](#deploy-the-backend-and-frontend)
+10. [Register the plugin in Experience Workspace](#register-the-plugin-in-experience-workspace)
+11. [Local development](#local-development)
+12. [Production-domain mapping](#production-domain-mapping)
+13. [Using another site instead of edgepatterns.dev](#using-another-site-instead-of-edgepatternsdev)
+14. [Known limits and unsupported features](#known-limits-and-unsupported-features)
+15. [Tests](#tests)
+16. [More documentation](#more-documentation)
 
 ---
 
 ## What the panel shows
 
-The author opens a document in Experience Workspace and picks **Search Insights** from the side-panel switcher. The panel reads the document path from the SDK and maps it to the public URL. In the screenshots, `/architecture/headless` in DA becomes `edgepatterns.dev/architecture/headless`. **Change URL** lets the author pick another URL on the same site.
+Open a page in Experience Workspace and choose **Search Insights** from the side-panel switcher. The panel maps the document path to its public URL. In the screenshots, `/architecture/headless` in DA becomes `edgepatterns.dev/architecture/headless`. Use **Change URL** to look up another page on the same site.
 
 ### Period and page totals
 
-The period picker offers 7, 28 or 90 days. Each period is compared with the previous period of the same length, and the dates are shown next to the picker. The period ends on the last day Google has finalized, usually two or three days ago.
+Choose 7, 28 or 90 days. The panel compares that period with the previous one of the same length. The dates end on the last day Google has finalized, usually two or three days ago.
 
 <img src="docs/screenshots/search-insights-overview-live.png" alt="Live Search Insights panel with the period, four page metrics and index status" width="720">
 
-Below it are the page totals: clicks, impressions, click-through rate (CTR) and average position. CTR changes are in percentage points. For position, a lower number is better, so the panel says "Improved 7.7" to show the direction.
+The totals come from Google, rather than a sum of the query rows. CTR changes are in percentage points. A lower position is better, so "Improved 7.7" means the average position number fell by 7.7.
 
 ### Index status
 
-The panel asks Google's URL Inspection API whether the page is indexed. The one-line summary is enough most of the time. **Index details** shows the coverage state, last crawl, the canonical Google picked compared with the one the page declares, the sitemap and any rich results. This is Google's stored result from its last crawl, not a live test.
+The panel asks Google's URL Inspection API whether the page is indexed. Open **Index details** to see the coverage state, last crawl, canonical URLs, sitemap and rich results. This is Google's stored result, not a live test.
 
 ### Suggestions
 
 <img src="docs/screenshots/search-insights-suggestions-live.png" alt="Two live suggestions, one selected for Ask in Chat" width="720">
 
-Suggestions are rule-based, not AI-generated. Each one is backed by numbers from the report:
+Suggestions use rules applied to the report data, not AI:
 
 | Suggestion | Shown when |
 | --- | --- |
@@ -66,11 +63,11 @@ Suggestions are rule-based, not AI-generated. Each one is backed by numbers from
 | Near the first-page boundary | A query has 30+ impressions and an average position between 8 and 20 |
 | Appears in this period's data | A query has 30+ impressions now but was not in the previous period's returned rows |
 
-Each card has a **What to check** list and a caveat. Pages with fewer than 100 impressions in the period get no suggestions, and the panel says why. Thresholds are in [docs/metrics-and-opportunities.md](docs/metrics-and-opportunities.md) and can be changed per site.
+Each card includes checks and a caveat. Pages with fewer than 100 impressions in the period get no suggestions. The thresholds are documented in [metrics and opportunities](docs/metrics-and-opportunities.md) and can be changed per site.
 
 ### Ask in Chat
 
-The author ticks the suggestions or queries that matter and clicks **Ask in Chat**. Search Insights builds a prompt from the selection and passes it to Workspace AI with the SDK's `setPrompt` action. The prompt appears in Chat for the author to read, edit and send. Nothing is sent automatically, and Search Insights never edits the document.
+Select suggestions or queries and click **Ask in Chat**. Search Insights builds a prompt and asks Workspace Chat to fill it in using the SDK's `setPrompt` action. You can review and edit it before sending. The plugin does not send the prompt or edit the document.
 
 In demo mode the button is disabled, because there is no Workspace host to receive the prompt.
 
@@ -110,49 +107,43 @@ Ask before changing or replacing document content.
 - Google Search Console returns top rows only and omits some queries; the query list is not complete keyword coverage.
 ```
 
-Shortened. The full prompt also lists page totals, freshness, last crawl and canonical. It is built by [`web/core/brief.js`](web/core/brief.js).
+This is an excerpt. The full prompt also lists page totals, freshness, last crawl and canonical. It is built by [`web/core/brief.js`](web/core/brief.js).
 </details>
 
 ### Queries
 
 <img src="docs/screenshots/search-insights-queries-live.png" alt="Five of 58 returned queries with their previous-period values" width="720">
 
-The query table lists the queries Google returned for the page, with the previous period's value under each number. Columns sort on click. The filter box and the menu (position 8 to 20, CTR below page CTR, not in previous rows, selected only) apply to all returned rows. The table shows 10 rows at a time, and **Show more** adds 10 without losing selections. A note under the table says what share of the page's clicks the listed queries cover, because Google omits some queries.
+The table shows Google's returned queries with the previous period's values. A query missing from the previous period is shown as missing, not zero. You can sort columns and filter all returned rows. The table starts with 10 rows; **Show more** adds 10 at a time without clearing your selection. Google omits some queries, so the note below the table shows what share of page clicks the returned rows cover.
 
 ### Account
 
-Each author connects their own Google account once, in a popup. The account is visible only when the author opens **Account**. The menu also has **Refresh data** and **Disconnect**. If the author's account can reach more than one allowed property, a property picker appears there too.
-
-## Why it works this way
-
-- **The author decides.** The panel shows evidence and drafts a prompt. It does not rewrite titles, publish, or send anything to Chat without the author pressing send. Search data is too noisy to act on automatically.
-- **Numbers are not stretched.** Page totals come from Google's page totals, not from adding up query rows. A query missing from the previous period is shown as missing, not as zero. Low-traffic pages get no suggestions.
-- **Only what applies is shown.** Bing appears only when it is configured. The property picker appears only when there is a choice. Index details and suggestion checks stay collapsed until opened.
-- **It looks like Workspace.** The panel loads Workspace's Spectrum 2 stylesheet from `da.live` and uses its tokens and controls, so it matches Outline, Versions and the other side panels in light and dark themes.
-- **Google and Bing stay separate.** They measure position differently, so their numbers are never blended.
+Each author connects their own Google account. The **Account** menu also offers **Refresh data** and **Disconnect**. A property picker appears when more than one configured property is available to that account.
 
 ## How it works
 
-```
-Experience Workspace (da.live)                        Cloudflare Worker (same origin as plugin)
-┌───────────────────────────────┐   iframe   ┌──────────────────────────────────────────────┐
-│ Document editor               │──────────▶│ /            plugin (web/)                    │
-│  Side panel ▸ Search Insights │            │ /api/*       Bearer = Workspace IMS token     │
-│                               │◀─ SDK ────│   1. IMS validate_token                        │
-│  context {org, site, path}    │  postMsg   │   2. DA admin /list/{org}/{site} → 200        │
-│  token (IMS)                  │            │   3. optional user allowlist                   │
-│  actions.setPrompt (chat)     │            │ /oauth/{google|bing}/callback                  │
-└───────────────────────────────┘            │ KV: encrypted refresh tokens, state, cache     │
-                                             └───────────┬─────────────────────┬────────────┘
-                                                         ▼                     ▼
-                                          Google Search Console APIs    Bing Webmaster JSON API
+```mermaid
+flowchart LR
+    workspace["Experience Workspace"]
+    panel["Search Insights side panel"]
+    worker["Cloudflare Worker"]
+    adobe["Adobe IMS and DA"]
+    storage[("Cloudflare KV")]
+    google["Google OAuth and Search Console"]
+
+    workspace -->|Page context and Adobe token| panel
+    panel -->|Chat prompt| workspace
+    panel -->|API requests| worker
+    worker -->|Validate access| adobe
+    worker <-->|Encrypted tokens and cache| storage
+    worker <-->|OAuth and search data| google
 ```
 
 1. Workspace loads the panel in an iframe from a row in the site's `library` sheet. The DA App SDK passes the document context (`org`, `site`, `path`) and the author's Adobe token.
-2. The panel maps the path to the public URL using the site's configured production origin. The backend fetches the published page and checks its canonical link.
-3. Every API call carries the Adobe token. The Worker validates it with Adobe IMS and checks that the author can read the site in DA. Opening the panel is not enough.
-4. The Worker calls Google with the author's own OAuth token. Refresh tokens are encrypted before they are stored in Workers KV. Each site may only query its configured origin and Search Console properties.
-5. The Worker normalizes both periods into one report and caches it per user, property, URL and period. The panel builds the suggestions and the Chat prompt in the browser.
+2. The panel maps the path to a public URL. The Worker checks the published page's canonical link.
+3. API requests carry the Adobe token. The Worker validates it with Adobe IMS and checks that the author can read the site in DA.
+4. After the author connects Google, the Worker calls Search Console with their token. Refresh tokens are encrypted in Workers KV. Requests are restricted to the site's configured origin and properties.
+5. The Worker caches reports per user, property, URL and period. The panel builds suggestions and the Chat prompt in the browser.
 
 ## Required accounts and permissions
 
@@ -162,7 +153,7 @@ Experience Workspace (da.live)                        Cloudflare Worker (same or
 | Cloudflare account (free plan for demos; see [Deployment options](#deployment-options) for production) | Hosts the Worker, static assets and a KV namespace. |
 | Google account that is a user of the Search Console property | Each author connects their own Google account; Google enforces property access. |
 | Google Cloud project | OAuth client and Search Console API enablement. |
-| Bing Webmaster Tools account with the site verified | API key (single-site install) or OAuth client. |
+| Bing Webmaster Tools account with the site verified (optional) | API key (single-site install) or OAuth client. |
 | Node.js 20+ and npm | Tests and Wrangler. |
 
 ## Deployment options
@@ -177,10 +168,11 @@ The choice is who owns the first two. Search Console access is always per author
 
 | Option | Who owns the host and OAuth app | Use it when | Trade-offs |
 | --- | --- | --- | --- |
-| **A. Self-hosted** (recommended for customers) | The customer: their Cloudflare account and their Google Cloud project | A customer runs it in production | The customer holds all secrets and encrypted tokens and controls the consent screen. They complete Google's OAuth verification or use an Internal app (option C). |
-| **B. Shared instance** | The operator of an existing deployment, e.g. the reference install | Demos, pilots, a handful of known authors | Only a new `SITES` entry and a library row are needed. The operator stores the customer's authors' encrypted tokens, and their consent screen shows the operator's app name. In Testing mode, the operator adds each author as a test user, and the 7-day token expiry applies. Not suitable for production use by another company. |
-| **C. Self-hosted, Internal Google app** | The customer, with the consent screen set to **Internal** | All authors sign in with the customer's Google Workspace domain | No test-user list, no 7-day expiry and no Google verification. Authors outside that Google Workspace organisation cannot connect. |
-| **D. Another host** (App Builder, Node.js, another edge platform) | The customer | Cloudflare is not an approved vendor, or the customer wants Adobe-hosted infrastructure | Requires a small adapter that has not been built or tested. See [Hosting and App Builder](#hosting-and-app-builder). |
+| **A. Self-hosted** (recommended for customers) | The customer: their Cloudflare account and their Google Cloud project | You want to run it in your own Cloudflare account. | The customer holds all secrets and encrypted tokens, controls the consent screen, and completes any required Google verification. |
+| **B. Shared instance** | The operator of an existing deployment, e.g. the reference install | You want a demo or pilot for a few known authors. | Only a new `SITES` entry and a library row are needed. The operator stores the customer's authors' encrypted tokens, and their consent screen shows the operator's app name. In Testing mode, the operator adds each author as a test user, and the 7-day token expiry applies. Not suitable for production use by another company. |
+| **C. Self-hosted, Internal Google app** | The customer, with the consent screen set to **Internal** | You want sign-in limited to your Google Workspace organisation. | No test-user list, no 7-day expiry and no Google verification. Authors outside that Google Workspace organisation cannot connect. |
+| **D. Adobe App Builder** | The customer: their Adobe org and Google Cloud project | You want Adobe-hosted infrastructure. | Requires App Builder access, runtime and storage adapters, and deployment configuration. Not built or tested. |
+| **E. Custom hosting** (Node.js or another platform) | The customer | You want to use your own server or another cloud platform. | Requires adapters for the chosen runtime and store. Not built or tested. See [Hosting](#hosting-and-app-builder). |
 
 **What a customer does for option A or C**
 
@@ -213,23 +205,7 @@ Examples:
 - **Node.js 20+** (container, VM, Azure App Service, Cloud Run): Node has `fetch`, `Request`, `Response` and WebCrypto built in. Wrap `handle()` with a small HTTP adapter, serve `web/` with the headers above, and use Redis or a database for the store. Use a single instance or a shared store, because OAuth state is written on one request and read on the callback.
 - **Other edge or serverless platforms** (Deno Deploy, Vercel, Netlify, AWS Lambda): the same adapter pattern applies, with the platform's key-value store.
 
-None of these ports has been built or tested.
-
-**Does App Builder add anything?** Adobe App Builder can host it: Runtime web actions for the API, App Builder State (`@adobe/aio-lib-state`) for the store, and Adobe's CDN for `web/`. It helps in these cases:
-
-- The customer already has an App Builder entitlement and wants no third-party host or vendor review for Cloudflare.
-- Hosting, credentials and support stay inside the customer's Adobe org and Adobe Developer Console project.
-- App Builder State supports per-key TTLs of up to 365 days, which covers OAuth state, tokens and report caches.
-
-It does not change the Workspace side. Experience Workspace loads this plugin through the DA App SDK and a `library` row, not through App Builder UI Extensibility (see [docs/workspace-integration.md](docs/workspace-integration.md#app-builder--ui-extensibility-discrepancy)). Google OAuth, Search Console permissions and DA site authorization also stay the same. Keep the backend's own IMS and DA checks even if you add `require-adobe-auth`, because only those checks confirm the author can read the configured DA site.
-
-Points to resolve before an App Builder port:
-
-- Actions run under `https://<namespace>.adobeioruntime.net/api/v1/web/...` and static files under `https://<namespace>.adobeio-static.net`. Those are different origins, so either add an API base URL to `web/api.js` and widen `connect-src`, or put both behind one domain. The OAuth callback URI changes too, so set `PUBLIC_BASE_URL` to the public action URL and register that URI with Google.
-- Check that the static CDN can send `frame-ancestors https://da.live https://*.da.live`, otherwise Workspace may not be allowed to frame the panel.
-- Check App Builder State's maximum value size against cached reports. Google reports can include up to 25,000 query rows.
-
-For this challenge, Cloudflare is used because it gives one origin for the panel and API with a free account. App Builder is the natural choice for an Adobe customer who already has the entitlement.
+The backend could also run on Adobe App Builder with an adapter, but this and the other ports have not been built or tested.
 
 ## Configure your site
 
@@ -290,12 +266,12 @@ Run `npm run check-config` to validate it.
 6. **Check Search Console access:** at <https://search.google.com/search-console/users>, confirm each author's Google account is a user (Full or Restricted) of the property listed in `google.properties`.
 
 **Distribution limits**
-- `webmasters.readonly` is a *sensitive* scope. While the app is in Testing, only listed test users can connect. Google also expires their refresh tokens after **7 days**, and Search Insights then shows "Reauthorization required".
-- To remove both limits, publish the app ("In production"). Using a sensitive scope then requires Google's OAuth verification for External apps, unless the app is Internal to a Workspace organisation.
+- For an External app in Testing, only listed test users can connect. Google generally expires their refresh tokens after **7 days**, and Search Insights then shows "Reauthorization required".
+- For a wider rollout, publish the app ("In production") and check Google Auth Platform's verification requirements for the scopes you use. An Internal app is limited to users in its Google Workspace organisation.
 
 ## Bing Webmaster Tools setup
 
-Bing's SOAP and POX endpoints were retired on 2026-08-31. Search Insights uses only the JSON endpoints (`/webmaster/api.svc/json/...`).
+Bing is optional and has not been tested with live credentials. Its SOAP and POX endpoints were retired on 2026-08-31; the plugin uses the JSON endpoints (`/webmaster/api.svc/json/...`).
 
 **Option A: deployment API key** (`"bing": { "auth": "apiKey" }`). This is the simplest option for a single-site install.
 1. Sign in at <https://www.bing.com/webmasters>. Add and verify the site if needed.
@@ -311,7 +287,7 @@ Bing's SOAP and POX endpoints were retired on 2026-08-31. Search Insights uses o
 
 ## Secrets
 
-All secrets live only in the platform secret store, never in the repository, `wrangler.jsonc` or the browser.
+In production, keep secrets in the platform secret store, not in the repository, `wrangler.jsonc` or the browser.
 
 | Secret | Required | How to set |
 | --- | --- | --- |
@@ -415,12 +391,12 @@ Other mapping behaviour:
    - `da.org` / `da.site`
    - `productionOrigin`
    - `google.properties`
-   - `bing.siteUrl`
+   - `bing.siteUrl`, if using Bing; otherwise remove the `bing` section
    - path rules, if your URLs differ from Edge Delivery defaults
 
    One deployment can serve several sites.
 2. Register the Google redirect URI (unchanged if you reuse the same Worker) and add your authors as test users if the app is in Testing.
-3. Generate a Bing key for an account that verified your site, and store it as a secret. Use a separate deployment if the key must not be shared.
+3. If using Bing with an API key, generate a key for an account that verified your site and store it as a secret. Use a separate deployment if the key must not be shared.
 4. Run `npm run check-config && npm test && npx wrangler deploy`.
 5. Add the library row to *your* site config.
 
@@ -446,18 +422,13 @@ Other mapping behaviour:
 - Providers are never blended: Google and Bing stay on separate tabs.
 - The prompt is built from deterministic rules. **Ask in Chat** does not send it or apply AI-generated edits. The SDK action is fire-and-forget and does not confirm that the host opened Chat.
 
-**Hosting and App Builder**
-- The challenge announcement mentions Adobe App Builder and UI Extensibility. Experience Workspace's documentation describes a different mechanism: DA App SDK micro-frontends in an iframe, configured through the `library` sheet. See [docs/workspace-integration.md](docs/workspace-integration.md).
-- The frontend follows the Workspace SDK. The backend runs on Cloudflare Workers, but all logic in `worker/app.js` and `web/core/` depends only on `fetch`, WebCrypto and a three-method key-value store (`worker/store.js`).
-- Porting to App Builder Runtime means wrapping `handle()` in an action and implementing the store with `@adobe/aio-lib-state`. This has not been done or tested.
-
 ## Tests
 
 ```bash
 npm test
 ```
 
-There are 112 focused tests (`node:test`, no dependencies) covering:
+The tests use `node:test` and cover:
 - URL mapping
 - comparison windows and date boundaries
 - CTR and percentage points
